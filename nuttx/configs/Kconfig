@@ -706,6 +706,17 @@ config ARCH_BOARD_SAML21_XPLAINED
 		This board features the ATSAML21J18A MCU (Cortex-M0+ with 256KB of FLASH
 		and 32KB of SRAM).
 
+config ARCH_BOARD_SAML21_SIGMAMODULE
+	bool "Filament Sigma Module"
+	depends on ARCH_CHIP_SAML21J18
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		The port of NuttX to the Filament Sigma Module.
+		This board features the ATSAML21J18A MCU (Cortex-M0+ with 256KB of FLASH
+		and 32KB of SRAM).
+
 config ARCH_BOARD_SAM3UEK
 	bool "Atmel SAM3U-EK development board"
 	depends on ARCH_CHIP_ATSAM3U4E
@@ -1247,6 +1258,7 @@ config ARCH_BOARD
 	default "sam4s-xplained-pro"       if ARCH_BOARD_SAM4S_XPLAINED_PRO
 	default "samv71-xult"              if ARCH_BOARD_SAMV71_XULT
 	default "shenzhou"                 if ARCH_BOARD_SHENZHOU
+	default "sigmamodule"              if ARCH_BOARD_SAML21_SIGMAMODULE
 	default "skp16c26"                 if ARCH_BOARD_SKP16C26
 	default "spark"                    if ARCH_BOARD_SPARK
 	default "stm32_tiny"               if ARCH_BOARD_STM32_TINY
@@ -1532,6 +1544,9 @@ source "configs/sama5d4-ek/Kconfig"
 endif
 if ARCH_BOARD_SAMD20_XPLAINED
 source "configs/samd20-xplained/Kconfig"
+endif
+if ARCH_BOARD_SAML21_SIGMAMODULE
+source "configs/sigmamodule/Kconfig"
 endif
 if ARCH_BOARD_SAML21_XPLAINED
 source "configs/saml21-xplained/Kconfig"
