@@ -82,7 +82,7 @@
  */
 
 #define PORT_STATUS_LED (PORT_OUTPUT | PORT_PULL_NONE | PORT_OUTPUT_SET | \
-                         PORTB | PORT_PIN20)
+                         PORTA | PORT_PIN20)
 
 /* Mechanical buttons:
  *
