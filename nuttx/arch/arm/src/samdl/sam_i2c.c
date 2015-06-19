@@ -211,10 +211,10 @@ static void i2c_takesem(sem_t *sem);
 #define     i2c_givesem(sem) (sem_post(sem))
 
 #ifdef CONFIG_SAM_I2C_REGDEBUG
-static bool i2c_checkreg(struct i2c_dev_s *priv, bool wr,
+static bool i2c_checkreg(struct sam_i2c_dev_s *priv, bool wr,
               uint32_t value, uintptr_t address);
-static uint32_t i2c_getabs(struct i2c_dev_s *priv, uintptr_t address);
-static void i2c_putabs(struct i2c_dev_s *priv, uintptr_t address,
+static uint32_t i2c_getabs(struct sam_i2c_dev_s *priv, uintptr_t address);
+static void i2c_putabs(struct sam_i2c_dev_s *priv, uintptr_t address,
               uint32_t value);
 #else
 # define    i2c_checkreg(priv,wr,value,address) (false)
@@ -222,16 +222,16 @@ static void i2c_putabs(struct i2c_dev_s *priv, uintptr_t address,
 # define    i2c_getabs(p,a) getreg32(a)
 #endif
 
-static inline uint32_t i2c_getrel(struct i2c_dev_s *priv,
+static inline uint32_t i2c_getrel(struct sam_i2c_dev_s *priv,
           unsigned int offset);
-static inline void i2c_putrel(struct i2c_dev_s *priv, unsigned int offset,
+static inline void i2c_putrel(struct sam_i2c_dev_s *priv, unsigned int offset,
           uint32_t value);
 
 /* I2C transfer helper functions */
 
-static int i2c_wait(struct i2c_dev_s *priv, unsigned int size);
-static void i2c_wakeup(struct i2c_dev_s *priv, int result);
-static int i2c_interrupt(struct i2c_dev_s *priv);
+static int i2c_wait(struct sam_i2c_dev_s *priv, unsigned int size);
+static void i2c_wakeup(struct sam_i2c_dev_s *priv, int result);
+static int i2c_interrupt(struct sam_i2c_dev_s *priv);
 #ifdef CONFIG_SAM_I2C0
 static int i2c0_interrupt(int irq, FAR void *context);
 #endif
@@ -252,9 +252,9 @@ static int i2c5_interrupt(int irq, FAR void *context);
 #endif
 static void i2c_timeout(int argc, uint32_t arg, ...);
 
-static void i2c_startread(struct i2c_dev_s *priv, struct i2c_msg_s *msg);
-static void i2c_startwrite(struct i2c_dev_s *priv, struct i2c_msg_s *msg);
-static void i2c_startmessage(struct i2c_dev_s *priv, struct i2c_msg_s *msg);
+static void i2c_startread(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg);
+static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg);
+static void i2c_startmessage(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg);
 
 /* I2C device operations */
 
@@ -280,9 +280,9 @@ static int i2c_registercallback(FAR struct i2c_dev_s *dev,
 
 /* Initialization */
 
-static uint32_t i2c_hw_setfrequency(struct i2c_dev_s *priv,
+static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv,
           uint32_t frequency);
-static void i2c_hw_initialize(struct i2c_dev_s *priv, uint32_t frequency);
+static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency);
 
 /*******************************************************************************
  * Private Data
@@ -304,9 +304,9 @@ static const struct i2c_attr_s g_i2c0attr =
   .handler = i2c0_interrupt,
 };
 
-static struct i2c_dev_s g_i2c1;
+static struct sam_i2c_dev_s g_i2c0;
 #endif
-#ifdef CONFIG_SAM_I2C0
+#ifdef CONFIG_SAM_I2C1
 static const struct i2c_attr_s g_i2c1attr =
 {
   .i2c       = 1,
@@ -322,7 +322,7 @@ static const struct i2c_attr_s g_i2c1attr =
   .handler = i2c1_interrupt,
 };
 
-static struct i2c_dev_s g_i2c1;
+static struct sam_i2c_dev_s g_i2c1;
 #endif
 
 #ifdef CONFIG_SAM_I2C2
@@ -341,7 +341,7 @@ static const struct i2c_attr_s g_i2c2attr =
   .handler = i2c2_interrupt,
 };
 
-static struct i2c_dev_s g_i2c2;
+static struct sam_i2c_dev_s g_i2c2;
 #endif
 
 #ifdef CONFIG_SAM_I2C3
@@ -360,7 +360,7 @@ static const struct i2c_attr_s g_i2c3attr =
   .handler = i2c3_interrupt,
 };
 
-static struct i2c_dev_s g_i2c3;
+static struct sam_i2c_dev_s g_i2c3;
 #endif
 
 #ifdef CONFIG_SAM_I2C4
@@ -379,7 +379,7 @@ static const struct i2c_attr_s g_i2c4attr =
   .handler = i2c4_interrupt,
 };
 
-static struct i2c_dev_s g_i2c4;
+static struct sam_i2c_dev_s g_i2c4;
 #endif
 
 #ifdef CONFIG_SAM_I2C5
@@ -398,7 +398,7 @@ static const struct i2c_attr_s g_i2c5attr =
   .handler = i2c5_interrupt,
 };
 
-static struct i2c_dev_s g_i2c5;
+static struct sam_i2c_dev_s g_i2c5;
 #endif
 
 struct i2c_ops_s g_i2cops =
@@ -547,7 +547,7 @@ static void i2c_takesem(sem_t *sem)
  ****************************************************************************/
 
 #ifdef CONFIG_SAM_I2C_REGDEBUG
-static bool i2c_checkreg(struct i2c_dev_s *priv, bool wr, uint32_t value,
+static bool i2c_checkreg(struct sam_i2c_dev_s *priv, bool wr, uint32_t value,
                          uint32_t address)
 {
   if (wr      == priv->wrlast &&   /* Same kind of access? */
@@ -593,7 +593,7 @@ static bool i2c_checkreg(struct i2c_dev_s *priv, bool wr, uint32_t value,
  ****************************************************************************/
 
 #ifdef CONFIG_SAM_I2C_REGDEBUG
-static uint32_t i2c_getabs(struct i2c_dev_s *priv, uintptr_t address)
+static uint32_t i2c_getabs(struct sam_i2c_dev_s *priv, uintptr_t address)
 {
   uint32_t value = getreg32(address);
 
@@ -615,7 +615,7 @@ static uint32_t i2c_getabs(struct i2c_dev_s *priv, uintptr_t address)
  ****************************************************************************/
 
 #ifdef CONFIG_SAM_I2C_REGDEBUG
-static void i2c_putabs(struct i2c_dev_s *priv, uintptr_t address,
+static void i2c_putabs(struct sam_i2c_dev_s *priv, uintptr_t address,
                        uint32_t value)
 {
   if (i2c_checkreg(priv, true, value, address))
@@ -635,7 +635,7 @@ static void i2c_putabs(struct i2c_dev_s *priv, uintptr_t address,
  *
  ****************************************************************************/
 
-static inline uint32_t i2c_getrel(struct i2c_dev_s *priv, unsigned int offset)
+static inline uint32_t i2c_getrel(struct sam_i2c_dev_s *priv, unsigned int offset)
 {
   return i2c_getabs(priv, priv->attr->base + offset);
 }
@@ -649,7 +649,7 @@ static inline uint32_t i2c_getrel(struct i2c_dev_s *priv, unsigned int offset)
  *
  ****************************************************************************/
 
-static inline void i2c_putrel(struct i2c_dev_s *priv, unsigned int offset,
+static inline void i2c_putrel(struct sam_i2c_dev_s *priv, unsigned int offset,
                               uint32_t value)
 {
   i2c_putabs(priv, priv->attr->base + offset, value);
@@ -1378,7 +1378,7 @@ static int i2c_transfer(FAR struct i2c_dev_s *dev,
  *
  ****************************************************************************/
 
-static void i2c_enableclk(struct i2c_dev_s *priv)
+static void i2c_enableclk(struct sam_i2c_dev_s *priv)
 {
   int pid;
 
@@ -1405,7 +1405,7 @@ static void i2c_enableclk(struct i2c_dev_s *priv)
  *
  *******************************************************************************/
 
-static uint32_t i2c_hw_setfrequency(struct i2c_dev_s *priv, uint32_t frequency)
+static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequency)
 {
   unsigned int ckdiv;
   unsigned int cldiv;
@@ -1467,7 +1467,7 @@ static uint32_t i2c_hw_setfrequency(struct i2c_dev_s *priv, uint32_t frequency)
  *
  *******************************************************************************/
 
-static void i2c_hw_initialize(struct i2c_dev_s *priv, uint32_t frequency)
+static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 {
   irqstate_t flags = irqsave();
   uint32_t regval;
@@ -1568,7 +1568,7 @@ static void i2c_hw_initialize(struct i2c_dev_s *priv, uint32_t frequency)
 
 struct i2c_dev_s *up_i2cinitialize(int bus)
 {
-  struct i2c_dev_s *priv;
+  struct sam_i2c_dev_s *priv;
   uint32_t frequency;
   irqstate_t flags;
   int ret;
