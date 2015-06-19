@@ -147,9 +147,7 @@ struct i2c_attr_s
 {
   uint8_t             i2c;        /* I2C device number (for debug output) */
   uint8_t             sercom;     /* Identifies the SERCOM peripheral */
-#if 0 /*Not used */
   uint8_t             irq;        /* SERCOM IRQ number */
-#endif
   uint8_t             gclkgen;    /* Source GCLK generator */
   uint8_t             slowgen;    /* Slow GCLK generator */
   port_pinset_t       pad0;       /* Pin configuration for PAD0 */
@@ -157,14 +155,12 @@ struct i2c_attr_s
   uint32_t            muxconfig;  /* Pad multiplexing configuration */
   uint32_t            srcfreq;    /* Source clock frequency */
   uintptr_t           base;       /* Base address of I2C registers */
-#if 0 /* Not used */
   xcpt_t              handler;    /* I2C interrupt handler */
-#endif
 };
 
 /* State of a I2C bus */
 
-struct i2c_dev_s
+struct sam_i2c_dev_s
 {
   struct i2c_dev_s    dev;        /* Generic I2C device */
   const struct i2c_attr_s *attr;  /* Invariant attributes of I2C device */
@@ -197,6 +193,19 @@ struct i2c_dev_s
  *******************************************************************************/
 
 /* Low-level helper functions */
+
+static uint8_t  i2c_getreg8(struct sam_i2c_dev_s *priv,
+                  unsigned int offset);
+static void     i2c_putreg8(struct sam_i2c_dev_s *priv, uint8_t regval,
+                  unsigned int offset);
+static uint16_t i2c_getreg16(struct sam_i2c_dev_s *priv,
+                  unsigned int offset);
+static void     i2c_putreg16(struct sam_i2c_dev_s *priv, uint16_t regval,
+                  unsigned int offset);
+static uint32_t i2c_getreg32(struct sam_i2c_dev_s *priv,
+                  unsigned int offset);
+static void     i2c_putreg32(struct sam_i2c_dev_s *priv, uint32_t regval,
+                  unsigned int offset);
 
 static void i2c_takesem(sem_t *sem);
 #define     i2c_givesem(sem) (sem_post(sem))
@@ -284,9 +293,7 @@ static const struct i2c_attr_s g_i2c0attr =
 {
   .i2c       = 0,
   .sercom    = 0,
-#if 0 /* Not used */
   .irq       = SAM_IRQ_SERCOM0,
-#endif
   .gclkgen   = BOARD_SERCOM0_GCLKGEN,
   .slowgen   = BOARD_SERCOM0_SLOW_GCLKGEN,
   .pad0      = BOARD_SERCOM0_PINMAP_PAD0,
@@ -294,9 +301,7 @@ static const struct i2c_attr_s g_i2c0attr =
   .muxconfig = BOARD_SERCOM0_MUXCONFIG,
   .srcfreq   = BOARD_SERCOM0_FREQUENCY,
   .base      = SAM_SERCOM0_BASE
-#if 0 /* Not used */
   .handler = i2c0_interrupt,
-#endif
 };
 
 static struct i2c_dev_s g_i2c1;
@@ -306,9 +311,7 @@ static const struct i2c_attr_s g_i2c1attr =
 {
   .i2c       = 1,
   .sercom    = 1,
-#if 0 /* Not used */
   .irq       = SAM_IRQ_SERCOM1,
-#endif
   .gclkgen   = BOARD_SERCOM1_GCLKGEN,
   .slowgen   = BOARD_SERCOM1_SLOW_GCLKGEN,
   .pad0      = BOARD_SERCOM1_PINMAP_PAD0,
@@ -316,9 +319,7 @@ static const struct i2c_attr_s g_i2c1attr =
   .muxconfig = BOARD_SERCOM1_MUXCONFIG,
   .srcfreq   = BOARD_SERCOM1_FREQUENCY,
   .base      = SAM_SERCOM1_BASE
-#if 0 /* Not used */
   .handler = i2c1_interrupt,
-#endif
 };
 
 static struct i2c_dev_s g_i2c1;
@@ -329,9 +330,7 @@ static const struct i2c_attr_s g_i2c2attr =
 {
   .i2c       = 2,
   .sercom    = 2,
-#if 0 /* Not used */
   .irq       = SAM_IRQ_SERCOM2,
-#endif
   .gclkgen   = BOARD_SERCOM2_GCLKGEN,
   .slowgen   = BOARD_SERCOM2_SLOW_GCLKGEN,
   .pad0      = BOARD_SERCOM2_PINMAP_PAD0,
@@ -339,9 +338,7 @@ static const struct i2c_attr_s g_i2c2attr =
   .muxconfig = BOARD_SERCOM2_MUXCONFIG,
   .srcfreq   = BOARD_SERCOM2_FREQUENCY,
   .base      = SAM_SERCOM2_BASE
-#if 0 /* Not used */
   .handler = i2c2_interrupt,
-#endif
 };
 
 static struct i2c_dev_s g_i2c2;
@@ -352,9 +349,7 @@ static const struct i2c_attr_s g_i2c3attr =
 {
   .i2c       = 3,
   .sercom    = 3,
-#if 0 /* Not used */
   .irq       = SAM_IRQ_SERCOM3,
-#endif
   .gclkgen   = BOARD_SERCOM3_GCLKGEN,
   .slowgen   = BOARD_SERCOM3_SLOW_GCLKGEN,
   .pad0      = BOARD_SERCOM3_PINMAP_PAD0,
@@ -362,9 +357,7 @@ static const struct i2c_attr_s g_i2c3attr =
   .muxconfig = BOARD_SERCOM3_MUXCONFIG,
   .srcfreq   = BOARD_SERCOM3_FREQUENCY,
   .base      = SAM_SERCOM3_BASE
-#if 0 /* Not used */
   .handler = i2c3_interrupt,
-#endif
 };
 
 static struct i2c_dev_s g_i2c3;
@@ -375,9 +368,7 @@ static const struct i2c_attr_s g_i2c4attr =
 {
   .i2c       = 4,
   .sercom    = 4,
-#if 0 /* Not used */
   .irq       = SAM_IRQ_SERCOM4,
-#endif
   .gclkgen   = BOARD_SERCOM4_GCLKGEN,
   .slowgen   = BOARD_SERCOM4_SLOW_GCLKGEN,
   .pad0      = BOARD_SERCOM4_PINMAP_PAD0,
@@ -385,9 +376,7 @@ static const struct i2c_attr_s g_i2c4attr =
   .muxconfig = BOARD_SERCOM4_MUXCONFIG,
   .srcfreq   = BOARD_SERCOM4_FREQUENCY,
   .base      = SAM_SERCOM4_BASE
-#if 0 /* Not used */
   .handler = i2c4_interrupt,
-#endif
 };
 
 static struct i2c_dev_s g_i2c4;
@@ -398,9 +387,7 @@ static const struct i2c_attr_s g_i2c5attr =
 {
   .i2c       = 5,
   .sercom    = 5,
-#if 0 /* Not used */
   .irq       = SAM_IRQ_SERCOM5,
-#endif
   .gclkgen   = BOARD_SERCOM5_GCLKGEN,
   .slowgen   = BOARD_SERCOM5_SLOW_GCLKGEN,
   .pad0      = BOARD_SERCOM5_PINMAP_PAD0,
@@ -408,9 +395,7 @@ static const struct i2c_attr_s g_i2c5attr =
   .muxconfig = BOARD_SERCOM5_MUXCONFIG,
   .srcfreq   = BOARD_SERCOM5_FREQUENCY,
   .base      = SAM_SERCOM5_BASE
-#if 0 /* Not used */
   .handler = i2c5_interrupt,
-#endif
 };
 
 static struct i2c_dev_s g_i2c5;
@@ -437,6 +422,85 @@ struct i2c_ops_s g_i2cops =
 /****************************************************************************
  * Low-level Helpers
  ****************************************************************************/
+
+/************************************************************************************
+ * Name: i2c_getreg8
+ *
+ * Description:
+ *   Get a 8-bit register value by offset
+ *
+ ************************************************************************************/
+static uint8_t  i2c_getreg8(struct sam_i2c_dev_s *priv,
+                            unsigned int offset)
+{
+  return getreg8(priv->attr->base + offset);
+}
+
+/************************************************************************************
+ * Name: i2c_putreg8
+ *
+ * Description:
+ *  Put a 8-bit register value by offset
+ *
+ ************************************************************************************/
+static void     i2c_putreg8(struct sam_i2c_dev_s *priv, uint8_t regval,
+                            unsigned int offset)
+{
+  putreg8(regval, priv->attr->base + offset);
+}
+
+/************************************************************************************
+ * Name: i2c_getreg16
+ *
+ * Description:
+ *   Get a 16-bit register value by offset
+ *
+ ************************************************************************************/
+static uint16_t  i2c_getreg16(struct sam_i2c_dev_s *priv,
+                              unsigned int offset)
+{
+  return getreg16(priv->attr->base + offset);
+}
+
+/************************************************************************************
+ * Name: i2c_putreg16
+ *
+ * Description:
+ *  Put a 16-bit register value by offset
+ *
+ ************************************************************************************/
+static void     i2c_putreg16(struct sam_i2c_dev_s *priv, uint16_t regval,
+                             unsigned int offset)
+{
+  putreg16(regval, priv->attr->base + offset);
+}
+
+/************************************************************************************
+ * Name: i2c_getreg32
+ *
+ * Description:
+ *   Get a 32-bit register value by offset
+ *
+ ************************************************************************************/
+static uint32_t  i2c_getreg32(struct sam_i2c_dev_s *priv,
+                              unsigned int offset)
+{
+  return getreg32(priv->attr->base + offset);
+}
+
+/************************************************************************************
+ * Name: i2c_putreg32
+ *
+ * Description:
+ *  Put a 32-bit register value by offset
+ *
+ ************************************************************************************/
+static void     i2c_putreg32(struct sam_i2c_dev_s *priv, uint32_t regval,
+                             unsigned int offset)
+{
+  putreg32(regval, priv->attr->base + offset);
+}
+
 /****************************************************************************
  * Name: i2c_takesem
  *
@@ -966,6 +1030,8 @@ static uint32_t i2c_setfrequency(FAR struct i2c_dev_s *dev, uint32_t frequency)
   uint32_t actual;
 
   DEBUGASSERT(dev);
+
+  i2cvdbg("sercom=%d frequency=%d\n", priv->sercom, frequency);
 
   /* Get exclusive access to the device */
 
