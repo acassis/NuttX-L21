@@ -159,7 +159,7 @@ struct i2c_attr_s
   uint32_t            sdaholdtime;  /* Hold time after start bit */
   uint32_t            speed;        /* I2C Speed: Standard; Fast; High */
   bool                scllowtout;   /* SCL low timeout */
-  uint32_t            inactout;     /* Inactive Timeout */
+  uint32_t            inactout;     /* Inactive Bus Timeout */
   bool                sclstretch;   /* SCL stretch only after ACK */
   bool                sclslvextout; /* SCL Slave extened timeout */
   bool                sclmstextout; /* SCL Master extend timeout */
@@ -173,7 +173,6 @@ struct sam_i2c_dev_s
   struct i2c_dev_s    dev;        /* Generic I2C device */
   const struct i2c_attr_s *attr;  /* Invariant attributes of I2C device */
   struct i2c_msg_s    *msg;       /* Message list */
-  uint32_t            i2cclk;     /* I2C input clock frequency */
 #ifdef CONFIG_I2C_RESET
   uint32_t            frequency;  /* I2C transfer clock frequency */
 #endif
@@ -1468,6 +1467,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
   uint32_t maxfreq;
   uint32_t actual;
   uint32_t baud;
+  uint32_t baud_hs;
   uint32_t ctrla;
 
   i2cvdbg("sercom=%d frequency=%d\n", priv->attr->sercom, frequency);
@@ -1492,6 +1492,56 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
       return priv->actual;
     }
 
+  /* Calculate and setup baud rate */
+
+  baud = ((priv->attr->srcfreq) / (2000 * frequency)) - 5;
+
+  /* Verify that the resulting if BAUD divisor is within range */
+
+  if (baud > 255)
+    {
+      i2cdbg("ERROR: BAUD is out of range: %d\n", baud);
+      baud = 255;
+    }
+  else
+    {
+      /* Find baudrate for high speed */
+      baud_hs = ((priv->attr->srcfreq) / (2000 * frequency)) - 1;
+
+      if (baud_hs > 255)
+        {
+          i2cdbg("ERROR: BAUD is out of range: %d\n", baud);
+          baud_hs = 255;
+        }
+    }
+
+  /* Momentarily disable I2C while we apply the new BAUD setting (if it was
+   * previously enabled)
+   */
+
+  ctrla = i2c_getreg32(priv, SAM_SPI_CTRLA_OFFSET);
+  if ((ctrla & I2C_CTRLA_ENABLE) != 0)
+    {
+      /* Disable I2C.. waiting for synchronization */
+
+      i2c_putreg32(priv, ctrla & ~I2C_CTRLA_ENABLE, SAM_I2C_CTRLA_OFFSET);
+      i2c_wait_synchronization(priv);
+
+      /* Set the new BAUD value */
+
+      i2c_putreg32(priv, (uint32_t) ((baud_hs << 16) | baud), SAM_I2C_BAUD_OFFSET);
+
+      /* Re-enable I2C.. waiting for synchronization */
+
+      i2c_putreg32(priv, ctrla, SAM_I2C_CTRLA_OFFSET);
+      i2c_wait_synchronization(priv);
+    }
+  else
+    {
+      /* Set the new BAUD when the I2C is already disabled */
+
+      i2c_putreg32(priv, (uint32_t) ((baud_hs << 16) | baud), SAM_I2C_BAUD_OFFSET);
+    }
 
 #ifdef CONFIG_I2C_RESET
   priv->frequency = frequency;
@@ -1513,6 +1563,7 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 {
   irqstate_t flags;
   uint32_t regval;
+  uint32_t ctrla = 0;
   uint32_t mck;
 
   i2cvdbg("I2C%d Initializing\n", priv->attr->i2c);
@@ -1548,11 +1599,44 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
   regval  = i2c_getreg32(priv, SAM_I2C_CTRLA_OFFSET);
   regval &= ~I2C_CTRLA_MODE_MASK;
   regval |= (I2C_CTRLA_MODE_MASTER);
-  spi_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
+  i2c_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
 
   /* Configure pads */
 
   i2c_pad_configure(priv);
+
+  /* Should it run in stand-by mode ?*/
+  if (priv->attr->runinstdby)
+     ctrla = I2C_CTRLA_RUNSTDBY;
+
+  /* Setup start data hold timeout */
+  ctrla |= priv->attr->sdaholdtime;
+
+  /* Setup transfer speed */
+  ctrla |= priv->attr->speed;
+
+  /* Setup Inactive Bus Timeout */
+  ctrla |= priv->attr->inactout;
+
+  /* Setup SCL low timeout */
+  if (priv->attr->scllowtout)
+    ctrla |= I2C_CTRLA_LOWTOUT;
+
+  /* Setup SCL clock stretch mode */
+  if (priv->attr->sclstretch)
+    ctrla |= I2C_CTRLA_SCLAM;
+
+  /* Setup slave SCL low extend timeout */
+  if (priv->attr->sclslvextout)
+    ctrla |= I2C_CTRLA_SEXTTOEN;
+
+  /* Setup master SCL low extend timeout */
+  if (priv->attr->sclmstextout)
+    ctrla |= I2C_CTRLA_MEXTTOEN;
+
+  regval  = i2c_getreg32(priv, SAM_I2C_CTRLA_OFFSET);
+  regval |= ctrla;
+  i2c_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
 
   /* Set an initial baud value. */
 
