@@ -147,7 +147,9 @@ struct i2c_attr_s
 {
   uint8_t             i2c;          /* I2C device number (for debug output) */
   uint8_t             sercom;       /* Identifies the SERCOM peripheral */
+#if 0 /* Not uset*/
   uint8_t             irq;          /* SERCOM IRQ number */
+#endif
   uint8_t             gclkgen;      /* Source GCLK generator */
   uint8_t             slowgen;      /* Slow GCLK generator */
   port_pinset_t       pad0;         /* Pin configuration for PAD0 */
@@ -173,9 +175,7 @@ struct sam_i2c_dev_s
   struct i2c_dev_s    dev;        /* Generic I2C device */
   const struct i2c_attr_s *attr;  /* Invariant attributes of I2C device */
   struct i2c_msg_s    *msg;       /* Message list */
-#ifdef CONFIG_I2C_RESET
   uint32_t            frequency;  /* I2C transfer clock frequency */
-#endif
   uint16_t            address;    /* Slave address */
   uint16_t            flags;      /* Transfer flags */
   uint8_t             msgc;       /* Number of message in the message list */
@@ -238,6 +238,7 @@ static inline void i2c_putrel(struct sam_i2c_dev_s *priv, unsigned int offset,
 
 static int i2c_wait(struct sam_i2c_dev_s *priv, unsigned int size);
 static void i2c_wakeup(struct sam_i2c_dev_s *priv, int result);
+#if 0
 static int i2c_interrupt(struct sam_i2c_dev_s *priv);
 #ifdef CONFIG_SAM_I2C0
 static int i2c0_interrupt(int irq, FAR void *context);
@@ -256,6 +257,7 @@ static int i2c4_interrupt(int irq, FAR void *context);
 #endif
 #ifdef CONFIG_SAM_I2C5
 static int i2c5_interrupt(int irq, FAR void *context);
+#endif
 #endif
 static void i2c_timeout(int argc, uint32_t arg, ...);
 
@@ -302,7 +304,9 @@ static const struct i2c_attr_s g_i2c0attr =
 {
   .i2c          = 0,
   .sercom       = 0,
+#if 0
   .irq          = SAM_IRQ_SERCOM0,
+#endif
   .gclkgen      = BOARD_SERCOM0_GCLKGEN,
   .slowgen      = BOARD_SERCOM0_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM0_PINMAP_PAD0,
@@ -328,7 +332,9 @@ static const struct i2c_attr_s g_i2c1attr =
 {
   .i2c          = 1,
   .sercom       = 1,
+#if 0
   .irq          = SAM_IRQ_SERCOM1,
+#endif
   .gclkgen      = BOARD_SERCOM1_GCLKGEN,
   .slowgen      = BOARD_SERCOM1_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM1_PINMAP_PAD0,
@@ -355,7 +361,9 @@ static const struct i2c_attr_s g_i2c2attr =
 {
   .i2c          = 2,
   .sercom       = 2,
+#if 0
   .irq          = SAM_IRQ_SERCOM2,
+#endif
   .gclkgen      = BOARD_SERCOM2_GCLKGEN,
   .slowgen      = BOARD_SERCOM2_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM2_PINMAP_PAD0,
@@ -382,7 +390,9 @@ static const struct i2c_attr_s g_i2c3attr =
 {
   .i2c          = 3,
   .sercom       = 3,
+#if 0
   .irq          = SAM_IRQ_SERCOM3,
+#endif
   .gclkgen      = BOARD_SERCOM3_GCLKGEN,
   .slowgen      = BOARD_SERCOM3_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM3_PINMAP_PAD0,
@@ -409,7 +419,9 @@ static const struct i2c_attr_s g_i2c4attr =
 {
   .i2c          = 4,
   .sercom       = 4,
+#if 0
   .irq          = SAM_IRQ_SERCOM4,
+#endif
   .gclkgen      = BOARD_SERCOM4_GCLKGEN,
   .slowgen      = BOARD_SERCOM4_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM4_PINMAP_PAD0,
@@ -436,7 +448,9 @@ static const struct i2c_attr_s g_i2c5attr =
 {
   .i2c          = 5,
   .sercom       = 5,
+#if 0
   .irq          = SAM_IRQ_SERCOM5,
+#endif
   .gclkgen      = BOARD_SERCOM5_GCLKGEN,
   .slowgen      = BOARD_SERCOM5_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM5_PINMAP_PAD0,
@@ -917,6 +931,7 @@ static int i2c_interrupt(struct i2c_dev_s *priv)
   return OK;
 }
 
+#if 0
 #ifdef CONFIG_SAM_I2C0
 static int i2c0_interrupt(int irq, FAR void *context)
 {
@@ -957,6 +972,7 @@ static int i2c5_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c5);
 }
+#endif
 #endif
 
 /*******************************************************************************
@@ -1427,33 +1443,6 @@ static int i2c_transfer(FAR struct i2c_dev_s *dev,
  * Initialization
  *******************************************************************************/
 
-/****************************************************************************
- * Name: i2c_enableclk
- *
- * Description:
- *   Enable clocking on the selected I2C
- *
- ****************************************************************************/
-
-static void i2c_enableclk(struct sam_i2c_dev_s *priv)
-{
-  int pid;
-
-  /* Get the peripheral ID associated with the I2C device port and enable
-   * clocking to the I2C block.
-   */
-
-  pid = priv->attr->pid;
-  if (pid < 32)
-    {
-      sam_enableperiph0(pid);
-    }
-  else
-    {
-      sam_enableperiph1(pid);
-    }
-}
-
 /*******************************************************************************
  * Name: i2c_hw_setfrequency
  *
@@ -1489,7 +1478,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
     {
       /* We are already at this frequency.  Return the actual. */
 
-      return priv->actual;
+      return priv->frequency;
     }
 
   /* Calculate and setup baud rate */
@@ -1543,9 +1532,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
       i2c_putreg32(priv, (uint32_t) ((baud_hs << 16) | baud), SAM_I2C_BAUD_OFFSET);
     }
 
-#ifdef CONFIG_I2C_RESET
   priv->frequency = frequency;
-#endif
   return actual;
 }
 
@@ -1650,8 +1637,9 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
   i2c_wait_synchronization(priv);
 
   /* Enable SERCOM interrupts at the NVIC */
-
+#if 0 /*Not used*/
   up_enable_irq(priv->attr->irq);
+#endif
   irqrestore(flags);
 }
 
@@ -1857,10 +1845,6 @@ int up_i2cuninitialize(FAR struct i2c_dev_s *dev)
 int up_i2creset(FAR struct i2c_dev_s *dev)
 {
   struct i2c_dev_s *priv = (struct i2c_dev_s *)dev;
-  unsigned int clockcnt;
-  unsigned int stretchcnt;
-  uint32_t sclpin;
-  uint32_t sdapin;
   int ret;
 
   ASSERT(priv);
@@ -1871,100 +1855,30 @@ int up_i2creset(FAR struct i2c_dev_s *dev)
 
   /* Disable I2C interrupts */
 
+#if 0 /* Not use */
   up_disable_irq(priv->attr->irq);
+#endif
 
-  /* Use PIO configuration to un-wedge the bus.
-   *
-   * Reconfigure both pins as open drain outputs with initial output value
-   * "high" (i.e., floating since these are open-drain outputs).
-   */
+  /* Disable I2C */
 
-  sclpin = MKI2C_OUTPUT(priv->attr->sclcfg);
-  sdapin = MKI2C_OUTPUT(priv->attr->sdacfg);
+  i2c_putreg32(priv, ctrla & ~I2C_CTRLA_ENABLE, SAM_I2C_CTRLA_OFFSET);
 
-  sam_configpio(sclpin);
-  sam_configpio(sdapin);
+  /* Wait it get sync */
 
-  /* Peripheral clocking must be enabled in order to read valid data from
-   * the output pin (clocking is enabled automatically for pins configured
-   * as inputs).
-   */
+  i2c_wait_synchronization(priv);
 
-  sam_pio_forceclk(sclpin, true);
-  sam_pio_forceclk(sdapin, true);
+  /* Reset I2C */
 
-  /* Clock the bus until any slaves currently driving it low let it float.
-   * Reading from the output will return the actual sensed level on the
-   * SDA pin (not the level that we wrote).
-   */
+  i2c_putreg32(priv, I2C_CTRLA_SWRST, SAM_I2C_CTRLA_OFFSET);
 
-  clockcnt = 0;
-  while (sam_pioread(sdapin) == false)
-    {
-      /* Give up if we have tried too hard */
+  /* Wait sync again before re-initialize */
 
-      if (clockcnt++ > 10)
-        {
-          ret = -ETIMEDOUT;
-          goto errout_with_lock;
-        }
-
-      /* Sniff to make sure that clock stretching has finished.  SCL should
-       * be floating high here unless something is driving it low.
-       *
-       * If the bus never relaxes, the reset has failed.
-       */
-
-      stretchcnt = 0;
-      while (sam_pioread(sclpin) == false)
-        {
-          /* Give up if we have tried too hard */
-
-          if (stretchcnt++ > 10)
-            {
-              ret = -EAGAIN;
-              goto errout_with_lock;
-            }
-
-          up_udelay(10);
-        }
-
-      /* Drive SCL low */
-
-      sam_piowrite(sclpin, false);
-      up_udelay(10);
-
-      /* Drive SCL high (floating) again */
-
-      sam_piowrite(sclpin, true);
-      up_udelay(10);
-    }
-
-  /* Generate a start followed by a stop to reset slave
-   * state machines.
-   */
-
-  sam_piowrite(sdapin, false);
-  up_udelay(10);
-  sam_piowrite(sclpin, false);
-  up_udelay(10);
-
-  sam_piowrite(sclpin, true);
-  up_udelay(10);
-  sam_piowrite(sdapin, true);
-  up_udelay(10);
-
-  /* Clocking is no longer forced */
-
-  sam_pio_forceclk(sclpin, false);
-  sam_pio_forceclk(sdapin, false);
+  i2c_wait_synchronization(priv);
 
   /* Re-initialize the port hardware */
 
   i2c_hw_initialize(priv, priv->frequency);
   ret = OK;
-
-errout_with_lock:
 
   /* Release our lock on the bus */
 
@@ -1972,4 +1886,4 @@ errout_with_lock:
   return ret;
 }
 #endif /* CONFIG_I2C_RESET */
-#endif /* CONFIG_SAM_I2C0 || ... || CONFIG_SAM_I2C3 */
+#endif /* CONFIG_SAM_I2C0 || ... || CONFIG_SAM_I2C5 */
