@@ -283,6 +283,8 @@ static int i2c_registercallback(FAR struct i2c_dev_s *dev,
 static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv,
           uint32_t frequency);
 static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency);
+static void i2c_wait_synchronization(struct sam_i2c_dev_s *priv);
+static void i2c_pad_configure(struct sam_i2c_dev_s *priv);
 
 /*******************************************************************************
  * Private Data
@@ -1475,78 +1477,46 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 
   i2cvdbg("I2C%d Initializing\n", priv->attr->i2c);
 
-  /* Configure PIO pins */
+  /* Enable clocking to the SERCOM module in PM */
 
-  sam_configpio(priv->attr->sclcfg);
-  sam_configpio(priv->attr->sdacfg);
+  flags = irqsave();
+  sercom_enable(priv->sercom);
 
-  /* Enable peripheral clocking */
+  /* Configure the GCLKs for the SERCOM module */
 
-  i2c_enableclk(priv);
+  sercom_coreclk_configure(priv->sercom, priv->gclkgen, false);
+  sercom_slowclk_configure(priv->sercom, priv->slowgen);
 
-  /* SVEN: I2C Slave Mode Enabled */
-
-  i2c_putrel(priv, SAM_I2C_CR_OFFSET, I2C_CR_SVEN);
-
-  /* Reset the I2C */
-
-  i2c_putrel(priv, SAM_I2C_CR_OFFSET, I2C_CR_SWRST);
-  (void)i2c_getrel(priv, SAM_I2C_RHR_OFFSET);
-
-  /* I2C Slave Mode Disabled, I2C Master Mode Disabled. */
-
-  i2c_putrel(priv, SAM_I2C_CR_OFFSET, I2C_CR_SVDIS);
-  i2c_putrel(priv, SAM_I2C_CR_OFFSET, I2C_CR_MSDIS);
-
-  /* Set master mode */
-
-  i2c_putrel(priv, SAM_I2C_CR_OFFSET, I2C_CR_MSEN);
-
-  /* Determine the maximum valid frequency setting */
-
-  mck = BOARD_MCK_FREQUENCY;
-
-#ifdef SAMDL_HAVE_PMC_PCR_DIV
-  /* Select the optimal value for the PCR DIV field */
-
-  DEBUGASSERT((mck >> 3) <= I2C_MAX_FREQUENCY);
-  if (mck <= I2C_MAX_FREQUENCY)
+  /* Check if module is enabled */
+  regval = i2c_getreg32(priv, SAM_I2C_CTRLA_OFFSET);
+  if (regval & I2C_CTRLA_ENABLE)
     {
-      priv->i2cclk = mck;
-      regval       = PMC_PCR_DIV1;
-    }
-  else if ((mck >> 1) <= I2C_MAX_FREQUENCY)
+      i2cvdbg("ERROR: Cannot initialize I2C because it is already initialized!\n");
+      return -EPERM;
+    } 
+
+  /* Check if reset is in progress */
+  regval = i2c_getreg32(priv, SAM_I2C_CTRLA_OFFSET);
+  if (regval & I2C_CTRLA_SWRST)
     {
-      priv->i2cclk = (mck >> 1);
-      regval       = PMC_PCR_DIV2;
-    }
-  else if ((mck >> 2) <= I2C_MAX_FREQUENCY)
-    {
-      priv->i2cclk = (mck >> 2);
-      regval       = PMC_PCR_DIV4;
-    }
-  else /* if ((mck >> 3) <= I2C_MAX_FREQUENCY) */
-    {
-      priv->i2cclk = (mck >> 3);
-      regval       = PMC_PCR_DIV8;
+      i2cvdbg("ERROR: Module is in RESET process!\n");
+      return -EBUSY;
     }
 
-#else
-  /* No DIV field in the PCR register */
+  /* Set the SERCOM in I2C master mode */
 
-  priv->i2cclk     = mck;
-  regval           = 0;
+  regval  = i2c_getreg32(priv, SAM_I2C_CTRLA_OFFSET);
+  regval &= ~I2C_CTRLA_MODE_MASK;
+  regval |= (I2C_CTRLA_MODE_MASTER);
+  spi_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
 
-#endif /* SAMDL_HAVE_PMC_PCR_DIV */
+  /* Configure pads */
 
-  /* Set the I2C peripheral input clock to the maximum, valid frequency */
+  i2c_pad_configure(priv);
 
-  regval |= PMC_PCR_PID(priv->attr->pid) | PMC_PCR_CMD | PMC_PCR_EN;
-  i2c_putabs(priv, SAM_PMC_PCR, regval);
+  /* Set an initial baud value. */
 
-  /* Set the initial I2C data transfer frequency */
-
-  i2c_hw_setfrequency(priv, frequency);
+  (void)i2c_hw_setfrequency(priv, 100000);
 
   /* Enable Interrupts */
 
