@@ -145,17 +145,25 @@
 
 struct i2c_attr_s
 {
-  uint8_t             i2c;        /* I2C device number (for debug output) */
-  uint8_t             sercom;     /* Identifies the SERCOM peripheral */
-  uint8_t             irq;        /* SERCOM IRQ number */
-  uint8_t             gclkgen;    /* Source GCLK generator */
-  uint8_t             slowgen;    /* Slow GCLK generator */
-  port_pinset_t       pad0;       /* Pin configuration for PAD0 */
-  port_pinset_t       pad1;       /* Pin configuration for PAD1 */
-  uint32_t            muxconfig;  /* Pad multiplexing configuration */
-  uint32_t            srcfreq;    /* Source clock frequency */
-  uintptr_t           base;       /* Base address of I2C registers */
-  xcpt_t              handler;    /* I2C interrupt handler */
+  uint8_t             i2c;          /* I2C device number (for debug output) */
+  uint8_t             sercom;       /* Identifies the SERCOM peripheral */
+  uint8_t             irq;          /* SERCOM IRQ number */
+  uint8_t             gclkgen;      /* Source GCLK generator */
+  uint8_t             slowgen;      /* Slow GCLK generator */
+  port_pinset_t       pad0;         /* Pin configuration for PAD0 */
+  port_pinset_t       pad1;         /* Pin configuration for PAD1 */
+  uint32_t            muxconfig;    /* Pad multiplexing configuration */
+  uint32_t            srcfreq;      /* Source clock frequency */
+  uintptr_t           base;         /* Base address of I2C registers */
+  bool                runinstdby;   /* Run in Stand-by ? */
+  uint32_t            sdaholdtime;  /* Hold time after start bit */
+  uint32_t            speed;        /* I2C Speed: Standard; Fast; High */
+  bool                scllowtout;   /* SCL low timeout */
+  uint32_t            inactout;     /* Inactive Timeout */
+  bool                sclstretch;   /* SCL stretch only after ACK */
+  bool                sclslvextout; /* SCL Slave extened timeout */
+  bool                sclmstextout; /* SCL Master extend timeout */
+  xcpt_t              handler;      /* I2C interrupt handler */
 };
 
 /* State of a I2C bus */
@@ -293,17 +301,25 @@ static void i2c_pad_configure(struct sam_i2c_dev_s *priv);
 #ifdef CONFIG_SAM_I2C0
 static const struct i2c_attr_s g_i2c0attr =
 {
-  .i2c       = 0,
-  .sercom    = 0,
-  .irq       = SAM_IRQ_SERCOM0,
-  .gclkgen   = BOARD_SERCOM0_GCLKGEN,
-  .slowgen   = BOARD_SERCOM0_SLOW_GCLKGEN,
-  .pad0      = BOARD_SERCOM0_PINMAP_PAD0,
-  .pad1      = BOARD_SERCOM0_PINMAP_PAD1,
-  .muxconfig = BOARD_SERCOM0_MUXCONFIG,
-  .srcfreq   = BOARD_SERCOM0_FREQUENCY,
-  .base      = SAM_SERCOM0_BASE
-  .handler = i2c0_interrupt,
+  .i2c          = 0,
+  .sercom       = 0,
+  .irq          = SAM_IRQ_SERCOM0,
+  .gclkgen      = BOARD_SERCOM0_GCLKGEN,
+  .slowgen      = BOARD_SERCOM0_SLOW_GCLKGEN,
+  .pad0         = BOARD_SERCOM0_PINMAP_PAD0,
+  .pad1         = BOARD_SERCOM0_PINMAP_PAD1,
+  .muxconfig    = BOARD_SERCOM0_MUXCONFIG,
+  .srcfreq      = BOARD_SERCOM0_FREQUENCY,
+  .base         = SAM_SERCOM0_BASE,
+  .runinstdby   = BOARD_SERCOM0_I2C_RUNINSTDBY,
+  .sdaholdtime  = BOARD_SERCOM0_I2C_START_HOLD_TIME,
+  .speed        = BOARD_SERCOM0_I2C_SPEED,
+  .scllowtout   = BOARD_SERCOM0_I2C_SCL_LOW_TIMEOUT,
+  .inactout     = BOARD_SERCOM0_I2C_INACTIVE_TIMEOUT,
+  .sclstretch   = BOARD_SERCOM0_I2C_SCL_STRETCH_ACK,
+  .sclslvextout = BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT,
+  .sclmstextout = BOARD_SERCOM0_I2C_SCL_MASTER_EXT_TIMEOUT,
+  .handler      = i2c0_interrupt,
 };
 
 static struct sam_i2c_dev_s g_i2c0;
@@ -311,17 +327,25 @@ static struct sam_i2c_dev_s g_i2c0;
 #ifdef CONFIG_SAM_I2C1
 static const struct i2c_attr_s g_i2c1attr =
 {
-  .i2c       = 1,
-  .sercom    = 1,
-  .irq       = SAM_IRQ_SERCOM1,
-  .gclkgen   = BOARD_SERCOM1_GCLKGEN,
-  .slowgen   = BOARD_SERCOM1_SLOW_GCLKGEN,
-  .pad0      = BOARD_SERCOM1_PINMAP_PAD0,
-  .pad1      = BOARD_SERCOM1_PINMAP_PAD1,
-  .muxconfig = BOARD_SERCOM1_MUXCONFIG,
-  .srcfreq   = BOARD_SERCOM1_FREQUENCY,
-  .base      = SAM_SERCOM1_BASE
-  .handler = i2c1_interrupt,
+  .i2c          = 1,
+  .sercom       = 1,
+  .irq          = SAM_IRQ_SERCOM1,
+  .gclkgen      = BOARD_SERCOM1_GCLKGEN,
+  .slowgen      = BOARD_SERCOM1_SLOW_GCLKGEN,
+  .pad0         = BOARD_SERCOM1_PINMAP_PAD0,
+  .pad1         = BOARD_SERCOM1_PINMAP_PAD1,
+  .muxconfig    = BOARD_SERCOM1_MUXCONFIG,
+  .srcfreq      = BOARD_SERCOM1_FREQUENCY,
+  .base         = SAM_SERCOM1_BASE,
+  .runinstdby   = BOARD_SERCOM1_I2C_RUNINSTDBY,
+  .sdaholdtime  = BOARD_SERCOM1_I2C_START_HOLD_TIME,
+  .speed        = BOARD_SERCOM1_I2C_SPEED,
+  .scllowtout   = BOARD_SERCOM1_I2C_SCL_LOW_TIMEOUT,
+  .inactout     = BOARD_SERCOM1_I2C_INACTIVE_TIMEOUT,
+  .sclstretch   = BOARD_SERCOM1_I2C_SCL_STRETCH_ACK,
+  .sclslvextout = BOARD_SERCOM1_I2C_SCL_SLAVE_EXT_TIMEOUT,
+  .sclmstextout = BOARD_SERCOM1_I2C_SCL_MASTER_EXT_TIMEOUT,
+  .handler      = i2c1_interrupt,
 };
 
 static struct sam_i2c_dev_s g_i2c1;
@@ -330,17 +354,25 @@ static struct sam_i2c_dev_s g_i2c1;
 #ifdef CONFIG_SAM_I2C2
 static const struct i2c_attr_s g_i2c2attr =
 {
-  .i2c       = 2,
-  .sercom    = 2,
-  .irq       = SAM_IRQ_SERCOM2,
-  .gclkgen   = BOARD_SERCOM2_GCLKGEN,
-  .slowgen   = BOARD_SERCOM2_SLOW_GCLKGEN,
-  .pad0      = BOARD_SERCOM2_PINMAP_PAD0,
-  .pad1      = BOARD_SERCOM2_PINMAP_PAD1,
-  .muxconfig = BOARD_SERCOM2_MUXCONFIG,
-  .srcfreq   = BOARD_SERCOM2_FREQUENCY,
-  .base      = SAM_SERCOM2_BASE
-  .handler = i2c2_interrupt,
+  .i2c          = 2,
+  .sercom       = 2,
+  .irq          = SAM_IRQ_SERCOM2,
+  .gclkgen      = BOARD_SERCOM2_GCLKGEN,
+  .slowgen      = BOARD_SERCOM2_SLOW_GCLKGEN,
+  .pad0         = BOARD_SERCOM2_PINMAP_PAD0,
+  .pad1         = BOARD_SERCOM2_PINMAP_PAD1,
+  .muxconfig    = BOARD_SERCOM2_MUXCONFIG,
+  .srcfreq      = BOARD_SERCOM2_FREQUENCY,
+  .base         = SAM_SERCOM2_BASE,
+  .runinstdby   = BOARD_SERCOM2_I2C_RUNINSTDBY,
+  .sdaholdtime  = BOARD_SERCOM2_I2C_START_HOLD_TIME,
+  .speed        = BOARD_SERCOM2_I2C_SPEED,
+  .scllowtout   = BOARD_SERCOM2_I2C_SCL_LOW_TIMEOUT,
+  .inactout     = BOARD_SERCOM2_I2C_INACTIVE_TIMEOUT,
+  .sclstretch   = BOARD_SERCOM2_I2C_SCL_STRETCH_ACK,
+  .sclslvextout = BOARD_SERCOM2_I2C_SCL_SLAVE_EXT_TIMEOUT,
+  .sclmstextout = BOARD_SERCOM2_I2C_SCL_MASTER_EXT_TIMEOUT,
+  .handler      = i2c2_interrupt,
 };
 
 static struct sam_i2c_dev_s g_i2c2;
@@ -349,17 +381,25 @@ static struct sam_i2c_dev_s g_i2c2;
 #ifdef CONFIG_SAM_I2C3
 static const struct i2c_attr_s g_i2c3attr =
 {
-  .i2c       = 3,
-  .sercom    = 3,
-  .irq       = SAM_IRQ_SERCOM3,
-  .gclkgen   = BOARD_SERCOM3_GCLKGEN,
-  .slowgen   = BOARD_SERCOM3_SLOW_GCLKGEN,
-  .pad0      = BOARD_SERCOM3_PINMAP_PAD0,
-  .pad1      = BOARD_SERCOM3_PINMAP_PAD1,
-  .muxconfig = BOARD_SERCOM3_MUXCONFIG,
-  .srcfreq   = BOARD_SERCOM3_FREQUENCY,
-  .base      = SAM_SERCOM3_BASE
-  .handler = i2c3_interrupt,
+  .i2c          = 3,
+  .sercom       = 3,
+  .irq          = SAM_IRQ_SERCOM3,
+  .gclkgen      = BOARD_SERCOM3_GCLKGEN,
+  .slowgen      = BOARD_SERCOM3_SLOW_GCLKGEN,
+  .pad0         = BOARD_SERCOM3_PINMAP_PAD0,
+  .pad1         = BOARD_SERCOM3_PINMAP_PAD1,
+  .muxconfig    = BOARD_SERCOM3_MUXCONFIG,
+  .srcfreq      = BOARD_SERCOM3_FREQUENCY,
+  .base         = SAM_SERCOM3_BASE,
+  .runinstdby   = BOARD_SERCOM3_I2C_RUNINSTDBY,
+  .sdaholdtime  = BOARD_SERCOM3_I2C_START_HOLD_TIME,
+  .speed        = BOARD_SERCOM3_I2C_SPEED,
+  .scllowtout   = BOARD_SERCOM3_I2C_SCL_LOW_TIMEOUT,
+  .inactout     = BOARD_SERCOM3_I2C_INACTIVE_TIMEOUT,
+  .sclstretch   = BOARD_SERCOM3_I2C_SCL_STRETCH_ACK,
+  .sclslvextout = BOARD_SERCOM3_I2C_SCL_SLAVE_EXT_TIMEOUT,
+  .sclmstextout = BOARD_SERCOM3_I2C_SCL_MASTER_EXT_TIMEOUT,
+  .handler      = i2c3_interrupt,
 };
 
 static struct sam_i2c_dev_s g_i2c3;
@@ -368,17 +408,25 @@ static struct sam_i2c_dev_s g_i2c3;
 #ifdef CONFIG_SAM_I2C4
 static const struct i2c_attr_s g_i2c4attr =
 {
-  .i2c       = 4,
-  .sercom    = 4,
-  .irq       = SAM_IRQ_SERCOM4,
-  .gclkgen   = BOARD_SERCOM4_GCLKGEN,
-  .slowgen   = BOARD_SERCOM4_SLOW_GCLKGEN,
-  .pad0      = BOARD_SERCOM4_PINMAP_PAD0,
-  .pad1      = BOARD_SERCOM4_PINMAP_PAD1,
-  .muxconfig = BOARD_SERCOM4_MUXCONFIG,
-  .srcfreq   = BOARD_SERCOM4_FREQUENCY,
-  .base      = SAM_SERCOM4_BASE
-  .handler = i2c4_interrupt,
+  .i2c          = 4,
+  .sercom       = 4,
+  .irq          = SAM_IRQ_SERCOM4,
+  .gclkgen      = BOARD_SERCOM4_GCLKGEN,
+  .slowgen      = BOARD_SERCOM4_SLOW_GCLKGEN,
+  .pad0         = BOARD_SERCOM4_PINMAP_PAD0,
+  .pad1         = BOARD_SERCOM4_PINMAP_PAD1,
+  .muxconfig    = BOARD_SERCOM4_MUXCONFIG,
+  .srcfreq      = BOARD_SERCOM4_FREQUENCY,
+  .base         = SAM_SERCOM4_BASE,
+  .runinstdby   = BOARD_SERCOM4_I2C_RUNINSTDBY,
+  .sdaholdtime  = BOARD_SERCOM4_I2C_START_HOLD_TIME,
+  .speed        = BOARD_SERCOM4_I2C_SPEED,
+  .scllowtout   = BOARD_SERCOM4_I2C_SCL_LOW_TIMEOUT,
+  .inactout     = BOARD_SERCOM4_I2C_INACTIVE_TIMEOUT,
+  .sclstretch   = BOARD_SERCOM4_I2C_SCL_STRETCH_ACK,
+  .sclslvextout = BOARD_SERCOM4_I2C_SCL_SLAVE_EXT_TIMEOUT,
+  .sclmstextout = BOARD_SERCOM4_I2C_SCL_MASTER_EXT_TIMEOUT,
+  .handler      = i2c4_interrupt,
 };
 
 static struct sam_i2c_dev_s g_i2c4;
@@ -387,17 +435,25 @@ static struct sam_i2c_dev_s g_i2c4;
 #ifdef CONFIG_SAM_I2C5
 static const struct i2c_attr_s g_i2c5attr =
 {
-  .i2c       = 5,
-  .sercom    = 5,
-  .irq       = SAM_IRQ_SERCOM5,
-  .gclkgen   = BOARD_SERCOM5_GCLKGEN,
-  .slowgen   = BOARD_SERCOM5_SLOW_GCLKGEN,
-  .pad0      = BOARD_SERCOM5_PINMAP_PAD0,
-  .pad1      = BOARD_SERCOM5_PINMAP_PAD1,
-  .muxconfig = BOARD_SERCOM5_MUXCONFIG,
-  .srcfreq   = BOARD_SERCOM5_FREQUENCY,
-  .base      = SAM_SERCOM5_BASE
-  .handler = i2c5_interrupt,
+  .i2c          = 5,
+  .sercom       = 5,
+  .irq          = SAM_IRQ_SERCOM5,
+  .gclkgen      = BOARD_SERCOM5_GCLKGEN,
+  .slowgen      = BOARD_SERCOM5_SLOW_GCLKGEN,
+  .pad0         = BOARD_SERCOM5_PINMAP_PAD0,
+  .pad1         = BOARD_SERCOM5_PINMAP_PAD1,
+  .muxconfig    = BOARD_SERCOM5_MUXCONFIG,
+  .srcfreq      = BOARD_SERCOM5_FREQUENCY,
+  .base         = SAM_SERCOM5_BASE,
+  .runinstdby   = BOARD_SERCOM5_I2C_RUNINSTDBY,
+  .sdaholdtime  = BOARD_SERCOM5_I2C_START_HOLD_TIME,
+  .speed        = BOARD_SERCOM5_I2C_SPEED,
+  .scllowtout   = BOARD_SERCOM5_I2C_SCL_LOW_TIMEOUT,
+  .inactout     = BOARD_SERCOM5_I2C_INACTIVE_TIMEOUT,
+  .sclstretch   = BOARD_SERCOM5_I2C_SCL_STRETCH_ACK,
+  .sclslvextout = BOARD_SERCOM5_I2C_SCL_SLAVE_EXT_TIMEOUT,
+  .sclmstextout = BOARD_SERCOM5_I2C_SCL_MASTER_EXT_TIMEOUT,
+  .handler      = i2c5_interrupt,
 };
 
 static struct sam_i2c_dev_s g_i2c5;
@@ -1409,49 +1465,33 @@ static void i2c_enableclk(struct sam_i2c_dev_s *priv)
 
 static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequency)
 {
-  unsigned int ckdiv;
-  unsigned int cldiv;
+  uint32_t maxfreq;
   uint32_t actual;
-  uint32_t regval;
+  uint32_t baud;
+  uint32_t ctrla;
 
-  /* Configure I2C output clocking, trying each value of CKDIV {0..7} */
+  i2cvdbg("sercom=%d frequency=%d\n", priv->attr->sercom, frequency);
 
-  for (ckdiv = 0; ckdiv < 8; ckdiv++)
+  /* Check if the configured BAUD is within the valid range */
+
+  maxfreq = (priv->attr->srcfreq >> 1);
+  if (frequency > maxfreq)
     {
-      /* Calculate the CLDIV value using the current CKDIV guess */
+      /* Set the frequency to the maximum */
 
-      cldiv = ((priv->i2cclk / (frequency << 1)) - 4) / (1 << ckdiv);
-
-      /* Is CLDIV in range? */
-
-      if (cldiv <= 255)
-        {
-          /* Yes, break out and use it */
-
-          break;
-        }
+      spidbg("ERROR: Cannot realize frequency: %ld\n", (long)frequency);
+      frequency = maxfreq;
     }
 
-  /* Then setup the I2C Clock Waveform Generator Register, using the same
-   * value for CLDIV and CHDIV (for 1:1 duty).
-   */
+  /* Check if the requested frequency is the same as the frequency selection */
 
-  i2c_putrel(priv, SAM_I2C_CWGR_OFFSET, 0);
+  if (priv->frequency == frequency)
+    {
+      /* We are already at this frequency.  Return the actual. */
 
-  regval = ((uint32_t)ckdiv << I2C_CWGR_CKDIV_SHIFT) |
-           ((uint32_t)cldiv << I2C_CWGR_CHDIV_SHIFT) |
-           ((uint32_t)cldiv << I2C_CWGR_CLDIV_SHIFT);
-  i2c_putrel(priv, SAM_I2C_CWGR_OFFSET, regval);
+      return priv->actual;
+    }
 
-  /* Calculate the actual I2C frequency */
-
-  actual = (priv->i2cclk / 2) / (((1 << ckdiv) * cldiv) + 2);
-  i2cvdbg("I2C%d frequency: %d ckdiv: %d cldiv: %d actual: %d\n",
-          priv->attr->i2c, frequency, ckdiv, cldiv, actual);
-
-  /* Save the requested frequency (for I2C reset) and return the
-   * actual frequency.
-   */
 
 #ifdef CONFIG_I2C_RESET
   priv->frequency = frequency;
@@ -1471,7 +1511,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
 
 static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 {
-  irqstate_t flags = irqsave();
+  irqstate_t flags;
   uint32_t regval;
   uint32_t mck;
 
@@ -1518,7 +1558,14 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 
   (void)i2c_hw_setfrequency(priv, 100000);
 
-  /* Enable Interrupts */
+  /* Enable I2C */
+
+  regval  = i2c_getreg32(priv, SAM_I2C_CTRLA_OFFSET);
+  regval |= I2C_CTRLA_ENABLE;
+  i2c_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
+  i2c_wait_synchronization(priv);
+
+  /* Enable SERCOM interrupts at the NVIC */
 
   up_enable_irq(priv->attr->irq);
   irqrestore(flags);
