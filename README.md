@@ -35,7 +35,7 @@ last_baseline_<date in yyyymmmdd> - created with ``` -m baseline last_baseline_<
 upstream - This branch will equal to that of the Source Forge repo http://git.code.sf.net/p/nuttx/git at the getfilament 
            uptake rate.
            
-           The only operations that shuld be doen on this branch are:
+           The only operations that should be done on this branch are::
            
            ```
            [ Needed Once] git add remote upstream http://git.code.sf.net/p/nuttx/git
@@ -63,5 +63,5 @@ upstream - This branch will equal to that of the Source Forge repo http://git.co
   ```
   Then diff .config back against configs/saml21-xplained/nsh/defconfig - if the changes are **not** related to build platform please copy the use ```cp .config configs/saml21-xplained/nsh/defconfig``` to update the config file - then revert the line ```CONFIG_APPS_DIR="../apps"``` to ```# CONFIG_APPS_DIR="../apps"``` 
   
-  The same operations should be done on the ```configs/sigmamodule/defconfig``` but the reversion of the  ```CONFIG_APPS_DIR``` line is not needed unless the config wil be submitted upstream
+  The same operations should be done on the ```configs/sigmamodule/defconfig``` but the reversion of the  ```CONFIG_APPS_DIR``` line is not needed unless the config will be submitted upstream
   
