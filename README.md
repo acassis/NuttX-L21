@@ -50,3 +50,18 @@ upstream - This branch will equal to that of the Source Forge repo http://git.co
   
   nuttx_patches    - This branch will have changes needed by NuttX-L21 - that will never be accepted upstream.
   
+  travis           - used to rebase on master or any branch to run a travis build on.
+
+ 
+## Nuttx Build
+  
+  Please run 
+  ```
+  cd tools;./configure.sh saml21-xplained/nsh;cd ..
+  make oldconfig
+  make menuconfig
+  ```
+  Then diff .config back against configs/saml21-xplained/nsh/defconfig - if the changes are **not** related to build platform please copy the use ```cp .config configs/saml21-xplained/nsh/defconfig``` to update the config file - then revert the line ```CONFIG_APPS_DIR="../apps"``` to ```# CONFIG_APPS_DIR="../apps"``` 
+  
+  The same operations should be done on the ```configs/sigmamodule/defconfig``` but the reversion of the  ```CONFIG_APPS_DIR``` line is not needed unless the config wil be submitted upstream
+  
