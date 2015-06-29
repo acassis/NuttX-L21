@@ -166,7 +166,9 @@ struct i2c_attr_s
   bool                sclstretch;   /* SCL stretch only after ACK */
   bool                sclslvextout; /* SCL Slave extened timeout */
   bool                sclmstextout; /* SCL Master extend timeout */
+#if 0 /* Not used yet */
   xcpt_t              handler;      /* I2C interrupt handler */
+#endif
 };
 
 /* State of a I2C bus */
@@ -246,22 +248,22 @@ static int i2c_wait(struct sam_i2c_dev_s *priv, unsigned int size);
 
 static void i2c_wakeup(struct sam_i2c_dev_s *priv, int result);
 static int i2c_interrupt(struct sam_i2c_dev_s *priv);
-#ifdef CONFIG_SAM_I2C0
+#ifdef SAMDL_HAVE_I2C0
 static int i2c0_interrupt(int irq, FAR void *context);
 #endif
-#ifdef CONFIG_SAM_I2C1
+#ifdef SAMDL_HAVE_I2C1
 static int i2c1_interrupt(int irq, FAR void *context);
 #endif
-#ifdef CONFIG_SAM_I2C2
+#ifdef SAMDL_HAVE_I2C2
 static int i2c2_interrupt(int irq, FAR void *context);
 #endif
-#ifdef CONFIG_SAM_I2C3
+#ifdef SAMDL_HAVE_I2C3
 static int i2c3_interrupt(int irq, FAR void *context);
 #endif
-#ifdef CONFIG_SAM_I2C4
+#ifdef SAMDL_HAVE_I2C4
 static int i2c4_interrupt(int irq, FAR void *context);
 #endif
-#ifdef CONFIG_SAM_I2C5
+#ifdef SAMDL_HAVE_I2C5
 static int i2c5_interrupt(int irq, FAR void *context);
 #endif
 
@@ -310,7 +312,7 @@ static void i2c_pad_configure(struct sam_i2c_dev_s *priv);
  * Private Data
  *******************************************************************************/
 
-#ifdef CONFIG_SAM_I2C0
+#ifdef SAMDL_HAVE_I2C0
 static const struct i2c_attr_s g_i2c0attr =
 {
   .i2c          = 0,
@@ -338,7 +340,7 @@ static const struct i2c_attr_s g_i2c0attr =
 
 static struct sam_i2c_dev_s g_i2c0;
 #endif
-#ifdef CONFIG_SAM_I2C1
+#ifdef SAMDL_HAVE_I2C1
 static const struct i2c_attr_s g_i2c1attr =
 {
   .i2c          = 1,
@@ -361,13 +363,15 @@ static const struct i2c_attr_s g_i2c1attr =
   .sclstretch   = BOARD_SERCOM1_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM1_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM1_I2C_SCL_MASTER_EXT_TIMEOUT,
+#if 0 /* Not used yet */
   .handler      = i2c1_interrupt,
+#endif
 };
 
 static struct sam_i2c_dev_s g_i2c1;
 #endif
 
-#ifdef CONFIG_SAM_I2C2
+#ifdef SAMDL_HAVE_I2C2
 static const struct i2c_attr_s g_i2c2attr =
 {
   .i2c          = 2,
@@ -390,13 +394,15 @@ static const struct i2c_attr_s g_i2c2attr =
   .sclstretch   = BOARD_SERCOM2_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM2_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM2_I2C_SCL_MASTER_EXT_TIMEOUT,
+#if 0 /* Not used yet */
   .handler      = i2c2_interrupt,
+#endif
 };
 
 static struct sam_i2c_dev_s g_i2c2;
 #endif
 
-#ifdef CONFIG_SAM_I2C3
+#ifdef SAMDL_HAVE_I2C3
 static const struct i2c_attr_s g_i2c3attr =
 {
   .i2c          = 3,
@@ -419,13 +425,15 @@ static const struct i2c_attr_s g_i2c3attr =
   .sclstretch   = BOARD_SERCOM3_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM3_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM3_I2C_SCL_MASTER_EXT_TIMEOUT,
+#if 0 /* Not used yet */
   .handler      = i2c3_interrupt,
+#endif
 };
 
 static struct sam_i2c_dev_s g_i2c3;
 #endif
 
-#ifdef CONFIG_SAM_I2C4
+#ifdef SAMDL_HAVE_I2C4
 static const struct i2c_attr_s g_i2c4attr =
 {
   .i2c          = 4,
@@ -448,13 +456,15 @@ static const struct i2c_attr_s g_i2c4attr =
   .sclstretch   = BOARD_SERCOM4_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM4_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM4_I2C_SCL_MASTER_EXT_TIMEOUT,
+#if 0 /* Not used yet */
   .handler      = i2c4_interrupt,
+#endif
 };
 
 static struct sam_i2c_dev_s g_i2c4;
 #endif
 
-#ifdef CONFIG_SAM_I2C5
+#ifdef SAMDL_HAVE_I2C5
 static const struct i2c_attr_s g_i2c5attr =
 {
   .i2c          = 5,
@@ -477,7 +487,9 @@ static const struct i2c_attr_s g_i2c5attr =
   .sclstretch   = BOARD_SERCOM5_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM5_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM5_I2C_SCL_MASTER_EXT_TIMEOUT,
+#if 0 /* Not used yet */
   .handler      = i2c5_interrupt,
+#endif
 };
 
 static struct sam_i2c_dev_s g_i2c5;
@@ -923,42 +935,42 @@ static int i2c_interrupt(struct i2c_dev_s *priv)
 }
 
 
-#ifdef CONFIG_SAM_I2C0
+#ifdef SAMDL_HAVE_I2C0
 static int i2c0_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c0);
 }
 #endif
 
-#ifdef CONFIG_SAM_I2C1
+#ifdef SAMDL_HAVE_I2C1
 static int i2c1_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c1);
 }
 #endif
 
-#ifdef CONFIG_SAM_I2C2
+#ifdef SAMDL_HAVE_I2C2
 static int i2c2_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c2);
 }
 #endif
 
-#ifdef CONFIG_SAM_I2C3
+#ifdef SAMDL_HAVE_I2C3
 static int i2c3_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c3);
 }
 #endif
 
-#ifdef CONFIG_SAM_I2C4
+#ifdef SAMDL_HAVE_I2C4
 static int i2c4_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c4);
 }
 #endif
 
-#ifdef CONFIG_SAM_I2C5
+#ifdef SAMDL_HAVE_I2C5
 static int i2c5_interrupt(int irq, FAR void *context)
 {
   return i2c_interrupt(&g_i2c5);
@@ -1686,7 +1698,8 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 
   /* Configure the GCLKs for the SERCOM module */
 
-  sercom_coreclk_configure(priv->attr->sercom, priv->attr->gclkgen, false);
+  //sercom_coreclk_configure(priv->attr->sercom, priv->attr->gclkgen, false);
+  sam_gclk_chan_enable(priv->attr->sercom + GCLK_CHAN_SERCOM0_CORE, priv->attr->gclkgen);
   sercom_slowclk_configure(priv->attr->sercom, priv->attr->slowgen);
 
   /* Check if module is enabled */
@@ -1825,7 +1838,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
 
   i2cvdbg("Initializing I2C%d\n", bus);
 
-#ifdef CONFIG_SAM_I2C0
+#ifdef SAMDL_HAVE_I2C0
   if (bus == 0)
     {
       /* Select up I2C0 and setup invariant attributes */
@@ -1839,7 +1852,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
     }
   else
 #endif
-#ifdef CONFIG_SAM_I2C1
+#ifdef SAMDL_HAVE_I2C1
   if (bus == 1)
     {
       /* Select up I2C1 and setup invariant attributes */
@@ -1853,7 +1866,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
     }
   else
 #endif
-#ifdef CONFIG_SAM_I2C2
+#ifdef SAMDL_HAVE_I2C2
   if (bus == 2)
     {
       /* Select up I2C2 and setup invariant attributes */
@@ -1867,7 +1880,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
     }
   else
 #endif
-#ifdef CONFIG_SAM_I2C3
+#ifdef SAMDL_HAVE_I2C3
   if (bus == 3)
     {
       /* Select up I2C3 and setup invariant attributes */
@@ -1881,7 +1894,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
     }
   else
 #endif
-#ifdef CONFIG_SAM_I2C4
+#ifdef SAMDL_HAVE_I2C4
   if (bus == 4)
     {
       /* Select up I2C4 and setup invariant attributes */
@@ -1895,7 +1908,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
     }
   else
 #endif
-#ifdef CONFIG_SAM_I2C5
+#ifdef SAMDL_HAVE_I2C5
   if (bus == 5)
     {
       /* Select up I2C5 and setup invariant attributes */
@@ -1961,8 +1974,8 @@ errout_with_wdog:
 errout_with_irq:
 #endif /* Not used */
 
-  irqrestore(flags);
-  return NULL;
+  //irqrestore(flags);
+  //return NULL;
 }
 
 /*******************************************************************************

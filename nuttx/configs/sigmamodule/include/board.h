@@ -556,9 +556,9 @@
 
 #define BOARD_SERCOM3_GCLKGEN        0
 #define BOARD_SERCOM3_SLOW_GCLKGEN   BOARD_SERCOM04_SLOW_GCLKGEN
-#define BOARD_SERCOM3_MUXCONFIG      (USART_CTRLA_RXPAD1 | USART_CTRLA_TXPAD0_2)
-#define BOARD_SERCOM3_PINMAP_PAD0    PORT_SERCOM3_PAD0_1 /* USART TX */
-#define BOARD_SERCOM3_PINMAP_PAD1    PORT_SERCOM3_PAD1_1 /* USART RX */
+#define BOARD_SERCOM3_MUXCONFIG      0
+#define BOARD_SERCOM3_PINMAP_PAD0    PORT_SERCOM3_PAD0_1 /* I2C SDA */
+#define BOARD_SERCOM3_PINMAP_PAD1    PORT_SERCOM3_PAD1_1 /* I2C SCL */
 #define BOARD_SERCOM3_PINMAP_PAD2    0                   /* (not used) */
 #define BOARD_SERCOM3_PINMAP_PAD3    0                   /* (not used) */
 
@@ -656,11 +656,11 @@
 
 /* Enable SCL Slave extened timeout */
 #define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
-#define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
-#define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
-#define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
-#define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
-#define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM1_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM2_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM3_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM4_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM5_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
 
 /* Enable SCL Master extend timeout */
 #define BOARD_SERCOM0_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
