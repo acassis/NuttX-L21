@@ -212,6 +212,7 @@
 
 #define I2C_INT_MB                 (1 << 0)  /* Bit 0:  Master on bus interrupt */
 #define I2C_INT_SB                 (1 << 1)  /* Bit 1:  Slave on bus interrupt */
+#define I2C_INT_ERR                (1 << 7)  /* Bit 7:  Bus Error */
 
 #define I2C_INT_ALL                (0x03)
 
