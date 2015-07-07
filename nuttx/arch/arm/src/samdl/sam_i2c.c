@@ -1612,7 +1612,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
   uint32_t baud_hs = 0;
   uint32_t ctrla;
 
-  i2cvdbg("sercom=%d frequency=%d\n", priv->attr->attr->sercom, frequency);
+  i2cvdbg("sercom=%d frequency=%d\n", priv->attr->sercom, frequency);
 
   /* Check if the configured BAUD is within the valid range */
 
@@ -1636,7 +1636,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
 
   /* Calculate and setup baud rate */
 
-  baud = ((priv->attr->srcfreq) / (2000 * frequency)) - 5;
+  baud = ((priv->attr->srcfreq) / (24 * frequency)) - 4;
 
   /* Verify that the resulting if BAUD divisor is within range */
 
@@ -1648,7 +1648,7 @@ static uint32_t i2c_hw_setfrequency(struct sam_i2c_dev_s *priv, uint32_t frequen
   else
     {
       /* Find baudrate for high speed */
-      baud_hs = ((priv->attr->srcfreq) / (2000 * frequency)) - 1;
+      baud_hs = ((priv->attr->srcfreq) / (478 * frequency)) - 1;
 
       if (baud_hs > 255)
         {
