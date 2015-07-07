@@ -92,3 +92,7 @@ endif
 ifeq ($(CONFIG_SAMDL_HAVE_SPI),y)
 CHIP_CSRCS += sam_spi.c
 endif
+
+ifeq ($(CONFIG_SAMDL_HAVE_I2C),y)
+CHIP_CSRCS += sam_i2c.c
+endif
