@@ -775,8 +775,8 @@ static int i2c_wait(struct sam_i2c_dev_s *priv, unsigned int size)
       timeout = 1;
     }
 
-  while (!((regval = i2c_getreg32(priv, SAM_I2C_INTFLAG_OFFSET)) & I2C_INT_MB) &&
-         !((regval = i2c_getreg32(priv, SAM_I2C_INTFLAG_OFFSET)) & I2C_INT_SB))
+  while (!((regval = i2c_getreg8(priv, SAM_I2C_INTFLAG_OFFSET)) & I2C_INT_MB) &&
+         !((regval = i2c_getreg8(priv, SAM_I2C_INTFLAG_OFFSET)) & I2C_INT_SB))
     {
       if (--timeout == 0)
         return -ETIMEDOUT;
@@ -1010,14 +1010,14 @@ static int  i2c_busresponse(struct sam_i2c_dev_s *priv)
   uint32_t regval;
 
   /* Verify if there are errors */
-  regval = i2c_getreg32(priv, SAM_I2C_INTFLAG_OFFSET);
+  regval = i2c_getreg8(priv, SAM_I2C_INTFLAG_OFFSET);
   if (regval & I2C_INT_SB)
     {
       /* Clear the interrupt flag */
-      i2c_putreg32(priv, I2C_INT_SB, SAM_I2C_INTFLAG_OFFSET);
+      i2c_putreg8(priv, I2C_INT_SB, SAM_I2C_INTFLAG_OFFSET);
 
       /* Check arbitration */
-      regval = i2c_getreg32(priv, SAM_I2C_STATUS_OFFSET);
+      regval = i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET);
       if (regval & I2C_STATUS_ARBLOST)
         {
           i2cdbg("ERROR: Transfer I2C Bus Collision!\n");
@@ -1025,7 +1025,7 @@ static int  i2c_busresponse(struct sam_i2c_dev_s *priv)
         }
     }
   else /* Verify if slave device reply with ACK */
-    if ((regval = i2c_getreg32(priv, SAM_I2C_STATUS_OFFSET)) & I2C_STATUS_RXNACK)
+    if ((regval = i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET)) & I2C_STATUS_RXNACK)
       {
         /* Slave is busy, issue an ACK and STOP */
         i2c_putreg32(priv, I2C_CTRLB_CMD_ACKSTOP, SAM_I2C_CTRLB_OFFSET);
@@ -1136,6 +1136,9 @@ static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
   priv->result = -EBUSY;
   priv->xfrd   = 0;
 
+  /* Wait bus sync */
+  i2c_wait_synchronization(priv);
+
   /* Set action to ACK */
   regval = i2c_getreg32(priv, SAM_I2C_CTRLB_OFFSET);
   regval &= ~I2C_CTRLB_ACKACT;
@@ -1179,7 +1182,13 @@ static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
         {
           while (priv->xfrd < msg->length)
             {
-              /* Wait for sync */
+              /* Check that bus ownership is not lost. */
+              if (!(i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET) & I2C_STATUS_BUSSTATE_OWNER)){
+                 lldbg("We lost bus ownership\n");
+                 return;// -EBUSY;
+              }
+             
+              /* Wait bus sync */
               i2c_wait_synchronization(priv);
 
               /* Write data */
@@ -1193,6 +1202,13 @@ static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
                   i2cdbg("ERROR: Write timeout while sending data!\n");
                   break;
                 }
+
+              /* Check for NACK from slave. */
+              if (i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET) & I2C_STATUS_RXNACK){
+                 lldbg("Slave responded NACK!\n");
+                 return;// -1;
+              }
+               
             }
 
           /* ACK and START */
@@ -1242,7 +1258,7 @@ static uint32_t i2c_setfrequency(FAR struct i2c_dev_s *dev, uint32_t frequency)
 
   DEBUGASSERT(dev);
 
-  i2cvdbg("sercom=%d frequency=%d\n", priv->sercom, frequency);
+  i2cvdbg("sercom=%d frequency=%d\n", priv->attr->sercom, frequency);
 
   /* Get exclusive access to the device */
 
@@ -1762,6 +1778,9 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
   regval |= ctrla;
   i2c_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
 
+  /* Enable Smart Mode */
+  i2c_putreg32(priv, I2C_CTRLB_SMEN, SAM_I2C_CTRLB_OFFSET);
+
   /* Set an initial baud value. */
 
   (void)i2c_hw_setfrequency(priv, 100000);
@@ -1772,6 +1791,13 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
   regval |= I2C_CTRLA_ENABLE;
   i2c_putreg32(priv, regval, SAM_I2C_CTRLA_OFFSET);
   i2c_wait_synchronization(priv);
+
+  /* Force IDLE bus state */
+
+  regval = i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET);
+  if (!(regval & I2C_STATUS_BUSSTATE_IDLE)){
+      i2c_putreg16(priv, I2C_STATUS_BUSSTATE_IDLE, SAM_I2C_STATUS_OFFSET);
+  }
 
   /* Enable SERCOM interrupts at the NVIC */
 #if 0 /*Not used*/
@@ -1790,7 +1816,7 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
 
 static void i2c_wait_synchronization(struct sam_i2c_dev_s *priv)
 {
-  while ((i2c_getreg16(priv, SAM_I2C_SYNCBUSY_OFFSET) & I2C_SYNCBUSY_ENABLE) != 0);
+  while ((i2c_getreg16(priv, SAM_I2C_SYNCBUSY_OFFSET) & 0x7) != 0);
 }
 
 
