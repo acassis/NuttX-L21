@@ -565,6 +565,73 @@
 
 #define BOARD_SERCOM5_FREQUENCY      BOARD_GCLK0_FREQUENCY
 
+/* I2C definitions */
+
+/* Should I2C Master run in stand-by mode? */
+#define BOARD_SERCOM0_I2C_RUNINSTDBY   0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM1_I2C_RUNINSTDBY   0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM2_I2C_RUNINSTDBY   0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM3_I2C_RUNINSTDBY   0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM4_I2C_RUNINSTDBY   0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM5_I2C_RUNINSTDBY   0 /* 0 = disabled ; 1 = enabled */
+
+/* I2C Master value for hold time after start bit */
+#define BOARD_SERCOM0_I2C_START_HOLD_TIME  I2C_CTRLA_SDAHOLD_600NS
+#define BOARD_SERCOM1_I2C_START_HOLD_TIME  I2C_CTRLA_SDAHOLD_600NS
+#define BOARD_SERCOM2_I2C_START_HOLD_TIME  I2C_CTRLA_SDAHOLD_600NS
+#define BOARD_SERCOM3_I2C_START_HOLD_TIME  I2C_CTRLA_SDAHOLD_600NS
+#define BOARD_SERCOM4_I2C_START_HOLD_TIME  I2C_CTRLA_SDAHOLD_600NS
+#define BOARD_SERCOM5_I2C_START_HOLD_TIME  I2C_CTRLA_SDAHOLD_600NS
+
+/* I2C Transfer Speed */
+#define BOARD_SERCOM0_I2C_SPEED            I2C_CTRLA_SPEED_STD
+#define BOARD_SERCOM1_I2C_SPEED            I2C_CTRLA_SPEED_STD
+#define BOARD_SERCOM2_I2C_SPEED            I2C_CTRLA_SPEED_STD
+#define BOARD_SERCOM3_I2C_SPEED            I2C_CTRLA_SPEED_STD
+#define BOARD_SERCOM4_I2C_SPEED            I2C_CTRLA_SPEED_STD
+#define BOARD_SERCOM5_I2C_SPEED            I2C_CTRLA_SPEED_STD
+
+/* I2C Master SCL low timeout */
+#define BOARD_SERCOM0_I2C_SCL_LOW_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM1_I2C_SCL_LOW_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM2_I2C_SCL_LOW_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM3_I2C_SCL_LOW_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM4_I2C_SCL_LOW_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM5_I2C_SCL_LOW_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+
+/* I2C Master Inactive Timeout */
+#define BOARD_SERCOM0_I2C_INACTIVE_TIMEOUT I2C_CTRLA_INACTOUT_DIS
+#define BOARD_SERCOM1_I2C_INACTIVE_TIMEOUT I2C_CTRLA_INACTOUT_DIS
+#define BOARD_SERCOM2_I2C_INACTIVE_TIMEOUT I2C_CTRLA_INACTOUT_DIS
+#define BOARD_SERCOM3_I2C_INACTIVE_TIMEOUT I2C_CTRLA_INACTOUT_DIS
+#define BOARD_SERCOM4_I2C_INACTIVE_TIMEOUT I2C_CTRLA_INACTOUT_DIS
+#define BOARD_SERCOM5_I2C_INACTIVE_TIMEOUT I2C_CTRLA_INACTOUT_DIS
+
+/* Enable SCL stretch only after ACK */
+#define BOARD_SERCOM0_I2C_SCL_STRETCH_ACK  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM1_I2C_SCL_STRETCH_ACK  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM2_I2C_SCL_STRETCH_ACK  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM3_I2C_SCL_STRETCH_ACK  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM4_I2C_SCL_STRETCH_ACK  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM5_I2C_SCL_STRETCH_ACK  0 /* 0 = disabled ; 1 = enabled */
+
+/* Enable SCL Slave extened timeout */
+#define BOARD_SERCOM0_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM1_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM2_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM3_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM4_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM5_I2C_SCL_SLAVE_EXT_TIMEOUT  0 /* 0 = disabled ; 1 = enabled */
+
+/* Enable SCL Master extend timeout */
+#define BOARD_SERCOM0_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM1_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM2_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM3_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM4_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
+#define BOARD_SERCOM5_I2C_SCL_MASTER_EXT_TIMEOUT 0 /* 0 = disabled ; 1 = enabled */
+
+
 /* LED definitions ******************************************************************/
 /* There are three LEDs on board the SAML21 Xplained Pro board:  The EDBG
  * controls two of the LEDs, a power LED and a status LED.  There is only

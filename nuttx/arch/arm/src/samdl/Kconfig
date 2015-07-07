@@ -395,7 +395,7 @@ choice
 
 config SAMDL_SERCOM0_ISI2C
 	bool "I2C"
-	select I2C
+        select SAMDL_HAVE_I2C
 
 config SAMDL_SERCOM0_ISSPI
 	bool "SPI"
@@ -415,7 +415,7 @@ choice
 
 config SAMDL_SERCOM1_ISI2C
 	bool "I2C"
-	select I2C
+        select SAMDL_HAVE_I2C
 
 config SAMDL_SERCOM1_ISSPI
 	bool "SPI"
@@ -435,7 +435,7 @@ choice
 
 config SAMDL_SERCOM2_ISI2C
 	bool "I2C"
-	select I2C
+        select SAMDL_HAVE_I2C
 
 config SAMDL_SERCOM2_ISSPI
 	bool "SPI"
@@ -455,7 +455,7 @@ choice
 
 config SAMDL_SERCOM3_ISI2C
 	bool "I2C"
-	select I2C
+        select SAMDL_HAVE_I2C
 
 config SAMDL_SERCOM3_ISSPI
 	bool "SPI"
@@ -475,7 +475,7 @@ choice
 
 config SAMDL_SERCOM4_ISI2C
 	bool "I2C"
-	select I2C
+        select SAMDL_HAVE_I2C
 
 config SAMDL_SERCOM4_ISSPI
 	bool "SPI"
@@ -495,7 +495,7 @@ choice
 
 config SAMDL_SERCOM5_ISI2C
 	bool "I2C"
-	select I2C
+        select SAMDL_HAVE_I2C
 
 config SAMDL_SERCOM5_ISSPI
 	bool "SPI"
@@ -522,3 +522,18 @@ config SAMDL_SPI_REGDEBUG
 		Enable very low-level register access debug.  Depends on DEBUG_SPI.
 
 endif # SAMDL_HAVE_SPI
+
+config SAMDL_HAVE_I2C
+	bool
+	select I2C
+
+if SAMDL_HAVE_I2C
+
+config SAMDL_I2C_REGDEBUG
+	bool "I2C register-Level Debug"
+	default n
+	depends on DEBUG_I2C
+	---help---
+		Enable very low-level register access debug.  Depends on DEBUG_I2C.
+
+endif # SAMDL_HAVE_I2C
