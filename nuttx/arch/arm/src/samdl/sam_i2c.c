@@ -55,6 +55,7 @@
 #include <debug.h>
 
 #include <nuttx/arch.h>
+#include <nuttx/wdog.h>
 #include <nuttx/clock.h>
 #include <nuttx/i2c.h>
 
@@ -148,9 +149,7 @@ struct i2c_attr_s
 {
   uint8_t             i2c;          /* I2C device number (for debug output) */
   uint8_t             sercom;       /* Identifies the SERCOM peripheral */
-#if 0 /* Not used*/
   uint8_t             irq;          /* SERCOM IRQ number */
-#endif
   uint8_t             gclkgen;      /* Source GCLK generator */
   uint8_t             slowgen;      /* Slow GCLK generator */
   port_pinset_t       pad0;         /* Pin configuration for PAD0 */
@@ -164,11 +163,9 @@ struct i2c_attr_s
   bool                scllowtout;   /* SCL low timeout */
   uint32_t            inactout;     /* Inactive Bus Timeout */
   bool                sclstretch;   /* SCL stretch only after ACK */
-  bool                sclslvextout; /* SCL Slave extened timeout */
+  bool                sclslvextout; /* SCL Slave extend timeout */
   bool                sclmstextout; /* SCL Master extend timeout */
-#if 0 /* Not used yet */
   xcpt_t              handler;      /* I2C interrupt handler */
-#endif
 };
 
 /* State of a I2C bus */
@@ -185,9 +182,7 @@ struct sam_i2c_dev_s
 
   sem_t               exclsem;    /* Only one thread can access at a time */
   sem_t               waitsem;    /* Wait for I2C transfer completion */
-#if 0 /*Not used*/
   WDOG_ID             timeout;    /* Watchdog to recover from bus hangs */
-#endif
   volatile int        result;     /* The result of the transfer */
   volatile int        xfrd;       /* Number of bytes transfers */
 
@@ -244,7 +239,6 @@ static inline void i2c_putrel(struct sam_i2c_dev_s *priv, unsigned int offset,
 
 static int i2c_wait_for_bus(struct sam_i2c_dev_s *priv, unsigned int size);
 
-#if 0 /* Not used yet */
 
 static void i2c_wakeup(struct sam_i2c_dev_s *priv, int result);
 static int i2c_interrupt(struct sam_i2c_dev_s *priv);
@@ -269,13 +263,9 @@ static int i2c5_interrupt(int irq, FAR void *context);
 
 static void i2c_timeout(int argc, uint32_t arg, ...);
 
-#endif /* Not used yet */
-
 static void i2c_startread(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg);
 static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg);
-#if 0 /* Not used */
 static void i2c_startmessage(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg);
-#endif
 static int  i2c_addr_response(struct sam_i2c_dev_s *priv);
 
 /* I2C device operations */
@@ -317,9 +307,7 @@ static const struct i2c_attr_s g_i2c0attr =
 {
   .i2c          = 0,
   .sercom       = 0,
-#if 0
   .irq          = SAM_IRQ_SERCOM0,
-#endif
   .gclkgen      = BOARD_SERCOM0_GCLKGEN,
   .slowgen      = BOARD_SERCOM0_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM0_PINMAP_PAD0,
@@ -345,9 +333,7 @@ static const struct i2c_attr_s g_i2c1attr =
 {
   .i2c          = 1,
   .sercom       = 1,
-#if 0
   .irq          = SAM_IRQ_SERCOM1,
-#endif
   .gclkgen      = BOARD_SERCOM1_GCLKGEN,
   .slowgen      = BOARD_SERCOM1_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM1_PINMAP_PAD0,
@@ -363,9 +349,7 @@ static const struct i2c_attr_s g_i2c1attr =
   .sclstretch   = BOARD_SERCOM1_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM1_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM1_I2C_SCL_MASTER_EXT_TIMEOUT,
-#if 0 /* Not used yet */
   .handler      = i2c1_interrupt,
-#endif
 };
 
 static struct sam_i2c_dev_s g_i2c1;
@@ -376,9 +360,7 @@ static const struct i2c_attr_s g_i2c2attr =
 {
   .i2c          = 2,
   .sercom       = 2,
-#if 0
   .irq          = SAM_IRQ_SERCOM2,
-#endif
   .gclkgen      = BOARD_SERCOM2_GCLKGEN,
   .slowgen      = BOARD_SERCOM2_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM2_PINMAP_PAD0,
@@ -394,9 +376,7 @@ static const struct i2c_attr_s g_i2c2attr =
   .sclstretch   = BOARD_SERCOM2_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM2_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM2_I2C_SCL_MASTER_EXT_TIMEOUT,
-#if 0 /* Not used yet */
   .handler      = i2c2_interrupt,
-#endif
 };
 
 static struct sam_i2c_dev_s g_i2c2;
@@ -407,9 +387,7 @@ static const struct i2c_attr_s g_i2c3attr =
 {
   .i2c          = 3,
   .sercom       = 3,
-#if 0
   .irq          = SAM_IRQ_SERCOM3,
-#endif
   .gclkgen      = BOARD_SERCOM3_GCLKGEN,
   .slowgen      = BOARD_SERCOM3_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM3_PINMAP_PAD0,
@@ -425,9 +403,7 @@ static const struct i2c_attr_s g_i2c3attr =
   .sclstretch   = BOARD_SERCOM3_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM3_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM3_I2C_SCL_MASTER_EXT_TIMEOUT,
-#if 0 /* Not used yet */
   .handler      = i2c3_interrupt,
-#endif
 };
 
 static struct sam_i2c_dev_s g_i2c3;
@@ -438,9 +414,7 @@ static const struct i2c_attr_s g_i2c4attr =
 {
   .i2c          = 4,
   .sercom       = 4,
-#if 0
   .irq          = SAM_IRQ_SERCOM4,
-#endif
   .gclkgen      = BOARD_SERCOM4_GCLKGEN,
   .slowgen      = BOARD_SERCOM4_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM4_PINMAP_PAD0,
@@ -456,9 +430,7 @@ static const struct i2c_attr_s g_i2c4attr =
   .sclstretch   = BOARD_SERCOM4_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM4_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM4_I2C_SCL_MASTER_EXT_TIMEOUT,
-#if 0 /* Not used yet */
   .handler      = i2c4_interrupt,
-#endif
 };
 
 static struct sam_i2c_dev_s g_i2c4;
@@ -469,9 +441,7 @@ static const struct i2c_attr_s g_i2c5attr =
 {
   .i2c          = 5,
   .sercom       = 5,
-#if 0
   .irq          = SAM_IRQ_SERCOM5,
-#endif
   .gclkgen      = BOARD_SERCOM5_GCLKGEN,
   .slowgen      = BOARD_SERCOM5_SLOW_GCLKGEN,
   .pad0         = BOARD_SERCOM5_PINMAP_PAD0,
@@ -487,9 +457,7 @@ static const struct i2c_attr_s g_i2c5attr =
   .sclstretch   = BOARD_SERCOM5_I2C_SCL_STRETCH_ACK,
   .sclslvextout = BOARD_SERCOM5_I2C_SCL_SLAVE_EXT_TIMEOUT,
   .sclmstextout = BOARD_SERCOM5_I2C_SCL_MASTER_EXT_TIMEOUT,
-#if 0 /* Not used yet */
   .handler      = i2c5_interrupt,
-#endif
 };
 
 static struct sam_i2c_dev_s g_i2c5;
@@ -785,7 +753,6 @@ static int i2c_wait_for_bus(struct sam_i2c_dev_s *priv, unsigned int size)
   return timeout;
 }
 
-#if 0 /* Not used */
 /*******************************************************************************
  * Name: i2c_wakeup
  *
@@ -794,15 +761,13 @@ static int i2c_wait_for_bus(struct sam_i2c_dev_s *priv, unsigned int size)
  *
  *******************************************************************************/
 
-static void i2c_wakeup(struct i2c_dev_s *priv, int result)
+static void i2c_wakeup(struct sam_i2c_dev_s *priv, int result)
 {
   /* Cancel any pending timeout */
 
   wd_cancel(priv->timeout);
 
   /* Disable any further I2C interrupts */
-
-  i2c_putrel(priv, SAM_I2C_IDR_OFFSET, I2C_INT_ALL);
 
   /* Wake up the waiting thread with the result of the transfer */
 
@@ -818,7 +783,7 @@ static void i2c_wakeup(struct i2c_dev_s *priv, int result)
  *
  *******************************************************************************/
 
-static int i2c_interrupt(struct i2c_dev_s *priv)
+static int i2c_interrupt(struct sam_i2c_dev_s *priv)
 {
   struct i2c_msg_s *msg;
   uint32_t sr;
@@ -826,111 +791,73 @@ static int i2c_interrupt(struct i2c_dev_s *priv)
   uint32_t pending;
   uint32_t regval;
 
-  /* Retrieve masked interrupt status */
-
-  sr      = i2c_getrel(priv, SAM_I2C_SR_OFFSET);
-  imr     = i2c_getrel(priv, SAM_I2C_IMR_OFFSET);
-  pending = sr & imr;
-
-  i2cllvdbg("I2C%d pending: %08x\n", priv->attr->i2c, pending);
-
-  /* Byte received */
-
   msg = priv->msg;
-  if ((pending & I2C_INT_RXRDY) != 0)
+
+  /* It is a read or write operation? */
+  if (msg->flags & I2C_M_READ)
     {
-      msg->buffer[priv->xfrd] = i2c_getrel(priv, SAM_I2C_RHR_OFFSET);
-      priv->xfrd++;
-
-      /* Check for transfer complete */
-
-      if (priv->xfrd >= msg->length)
+      if (priv->xfrd < msg->length)
         {
-          /* The transfer is complete.  Disable the RXRDY interrupt and
-           * enable the TXCOMP interrupt
-           */
+          /* Clear read interrupt flag */
+          i2c_putreg8(priv, I2C_INT_MB | I2C_INT_SB, SAM_I2C_INTFLAG_OFFSET);
 
-          i2c_putrel(priv, SAM_I2C_IDR_OFFSET, I2C_INT_RXRDY);
-          i2c_putrel(priv, SAM_I2C_IER_OFFSET, I2C_INT_TXCOMP);
+          /* Wait for Sync */
+          i2c_wait_synchronization(priv);
+
+          /* Read byte from bus */
+          msg->buffer[priv->xfrd++] = i2c_getreg8(priv, SAM_I2C_DATA_OFFSET);
         }
-
-      /* Not yet complete, but will the next be the last byte? */
-
-      else if (priv->xfrd == (msg->length - 1))
+      else
         {
-          /* Yes, set the stop signal */
+          /* Disable Interrupts */
+          regval = I2C_INT_MB | I2C_INT_SB;
+          i2c_putreg8(priv, regval, SAM_I2C_INTENCLR_OFFSET);
 
-          i2c_putrel(priv, SAM_I2C_CR_OFFSET, I2C_CR_STOP);
+          lldbg("Got data = 0x%02X\n", msg->buffer[0]);
         }
     }
-
-  /* Byte sent*/
-
-  else if ((pending & I2C_INT_TXRDY) != 0)
+  else
     {
       /* Transfer finished? */
 
       if (priv->xfrd >= msg->length)
         {
-          /* The transfer is complete.  Disable the TXRDY interrupt and
-           * enable the TXCOMP interrupt
-           */
 
-          i2c_putrel(priv, SAM_I2C_IDR_OFFSET, I2C_INT_TXRDY);
-          i2c_putrel(priv, SAM_I2C_IER_OFFSET, I2C_INT_TXCOMP);
+          /* Clear write interrupt flag */
+          i2c_putreg8(priv, I2C_INT_MB, SAM_I2C_INTFLAG_OFFSET);
 
-          /* Send the STOP condition */
+          /* Disable Interrupts */
+          regval = I2C_INT_MB | I2C_INT_SB;
+          i2c_putreg8(priv, regval, SAM_I2C_INTENCLR_OFFSET);
 
-          regval  = i2c_getrel(priv, SAM_I2C_CR_OFFSET);
-          regval |= I2C_CR_STOP;
-          i2c_putrel(priv, SAM_I2C_CR_OFFSET, regval);
+	  /* Send STOP condition */
+          i2c_putreg32(priv, I2C_CTRLB_CMD_ACKSTOP, SAM_I2C_CTRLB_OFFSET);
         }
-
-      /* No, there are more bytes remaining to be sent */
-
       else
         {
-          i2c_putrel(priv, SAM_I2C_THR_OFFSET, msg->buffer[priv->xfrd]);
+
+          /* Check for errors */
+          if ((i2c_getreg8(priv, SAM_I2C_INTFLAG_OFFSET) & I2C_INT_MB))
+            {
+              /* Clear write interrupt flag */
+              i2c_putreg8(priv, I2C_INT_MB, SAM_I2C_INTFLAG_OFFSET);
+
+              /* Check arbitration */
+              if (i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET) & I2C_STATUS_ARBLOST)
+                {
+                  lldbg("I2C Bus Collisation!\n");
+                  return -EBUSY;
+                }
+            }
+
+          /* Wait for sync */
+          i2c_wait_synchronization(priv);
+
+          /* Write byte to bus */
+          i2c_putreg8(priv, msg->buffer[priv->xfrd], SAM_I2C_DATA_OFFSET);
           priv->xfrd++;
         }
     }
-
-  /* Transfer complete */
-
-  else if ((pending & I2C_INT_TXCOMP) != 0)
-    {
-      i2c_putrel(priv, SAM_I2C_IDR_OFFSET, I2C_INT_TXCOMP);
-
-      /* Is there another message to send? */
-
-      if (priv->msgc > 1)
-        {
-          /* Yes... start the next message */
-
-          priv->msg++;
-          priv->msgc--;
-          i2c_startmessage(priv, priv->msg);
-        }
-      else
-        {
-          /* No.. we made it to the end of the message list with no errors.
-           * Cancel any timeout and wake up the waiting thread with a
-           * success indication.
-           */
-          i2c_wakeup(priv, OK);
-        }
-    }
-
-  /* Check for errors */
-
-  else if ((pending & I2C_INT_ERRORS) != 0)
-    {
-      /* Wake up the thread with an I/O error indication */
-
-      i2clldbg("ERROR: I2C%d pending: %08x\n", priv->attr->i2c, pending);
-      i2c_wakeup(priv, -EIO);
-    }
-
   return OK;
 }
 
@@ -990,12 +917,11 @@ static int i2c5_interrupt(int irq, FAR void *context)
 
 static void i2c_timeout(int argc, uint32_t arg, ...)
 {
-  struct i2c_dev_s *priv = (struct i2c_dev_s *)arg;
+  struct sam_i2c_dev_s *priv = (struct sam_i2c_dev_s *)arg;
 
   i2clldbg("ERROR: I2C%d Timeout!\n", priv->attr->i2c);
   i2c_wakeup(priv, -ETIMEDOUT);
 }
-#endif /* Not used */
 
 /*******************************************************************************
  * Name: i2c_addr_response
@@ -1058,6 +984,10 @@ static void i2c_startread(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
   regval &= ~I2C_CTRLB_ACKACT;
   i2c_putreg32(priv, regval, SAM_I2C_CTRLB_OFFSET);
 
+  /* Enable Interrupts */
+  regval = I2C_INT_MB | I2C_INT_SB;
+  i2c_putreg8(priv, regval, SAM_I2C_INTENSET_OFFSET);
+
   /* Create the ADDR register */
   regval = (msg->addr) << 1;
 
@@ -1073,58 +1003,6 @@ static void i2c_startread(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
   /* Set the ADDR register */
   i2c_putreg32(priv, regval, SAM_I2C_ADDR_OFFSET);
 
-  /* Wait for response */
-  ret = i2c_wait_for_bus(priv, 0);
-  if (ret < 0)
-    {
-      i2cdbg("ERROR: Read failed with timeout!\n");
-    }
-  else
-    {
-      /* Set action to ACK */
-      regval = i2c_getreg32(priv, SAM_I2C_CTRLB_OFFSET);
-      regval &= ~I2C_CTRLB_ACKACT;
-      i2c_putreg32(priv, regval, SAM_I2C_CTRLB_OFFSET);
-
-      /* Verify for I2C bus address errors */
-      ret = i2c_addr_response(priv);
-      if (ret < 0)
-        {
-          i2cdbg("ERROR: Read bus address error = %d\n", ret);
-        }
-      else
-        {
-          while (priv->xfrd < msg->length)
-            {
-              /* Check that bus ownership is not lost. */
-              if (!(i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET) & I2C_STATUS_BUSSTATE_OWNER)){
-                 lldbg("We lost bus ownership\n");
-                 return;// -EBUSY;
-              }
-
-              /* Wait for sync */
-              i2c_wait_synchronization(priv);
-
-              /* Read data */
-              msg->buffer[priv->xfrd] = i2c_getreg8(priv, SAM_I2C_DATA_OFFSET);
-              priv->xfrd++;
-
-              /* Wait for BUS */
-              ret = i2c_wait_for_bus(priv, 0);
-              if (ret < 0)
-                {
-                  i2cdbg("ERROR: Read timeout while receiving data!\n");
-                  break;
-                }
-            }
-
-          /* ACK and START */
-          //i2c_putreg32(priv, I2C_CTRLB_CMD_ACKREP, SAM_I2C_CTRLB_OFFSET);
-
-          /* ACK and STOP */
-          //i2c_putreg32(priv, I2C_CTRLB_CMD_ACKSTOP, SAM_I2C_CTRLB_OFFSET);
-        }
-    }
 }
 
 /*******************************************************************************
@@ -1153,6 +1031,10 @@ static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
   regval &= ~I2C_CTRLB_ACKACT;
   i2c_putreg32(priv, regval, SAM_I2C_CTRLB_OFFSET);
 
+  /* Enable Interrupts */
+  regval = I2C_INT_MB | I2C_INT_SB;
+  i2c_putreg8(priv, regval, SAM_I2C_INTENSET_OFFSET);
+
   /* Create the ADDR register */
   regval = (msg->addr) << 1;
 
@@ -1167,69 +1049,8 @@ static void i2c_startwrite(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
 
   /* Set the ADDR register */
   i2c_putreg32(priv, regval, SAM_I2C_ADDR_OFFSET);
-
-  /* Wait for response */
-  ret = i2c_wait_for_bus(priv, 0);
-  if (ret < 0)
-    {
-      i2cdbg("ERROR: Write failed with timeout!\n");
-    }
-  else
-    {
-      /* Set action to ACK */
-      //regval = i2c_getreg32(priv, SAM_I2C_CTRLB_OFFSET);
-      //regval &= ~I2C_CTRLB_ACKACT;
-      //i2c_putreg32(priv, regval, SAM_I2C_CTRLB_OFFSET);
-
-      /* Verify for I2C bus address errors */
-      ret = i2c_addr_response(priv);
-      if (ret < 0)
-        {
-          i2cdbg("ERROR: Write bus address error = %d\n", ret);
-        }
-      else
-        {
-          while (priv->xfrd < msg->length)
-            {
-              /* Check that bus ownership is not lost. */
-              if (!(i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET) & I2C_STATUS_BUSSTATE_OWNER)){
-                 lldbg("We lost bus ownership\n");
-                 return;// -EBUSY;
-              }
-             
-              /* Wait bus sync */
-              i2c_wait_synchronization(priv);
-
-              /* Write data */
-              i2c_putreg8(priv, msg->buffer[priv->xfrd], SAM_I2C_DATA_OFFSET);
-              priv->xfrd++;
-
-              /* Wait for BUS */
-              ret = i2c_wait_for_bus(priv, 0);
-              if (ret < 0)
-                {
-                  i2cdbg("ERROR: Write timeout while sending data!\n");
-                  break;
-                }
-
-              /* Check for NACK from slave. */
-              if (i2c_getreg16(priv, SAM_I2C_STATUS_OFFSET) & I2C_STATUS_RXNACK){
-                 lldbg("Slave responded NACK!\n");
-                 return;// -1;
-              }
-               
-            }
-
-          /* ACK and START */
-          //i2c_putreg32(priv, I2C_CTRLB_CMD_ACKREP, SAM_I2C_CTRLB_OFFSET);
-
-          /* ACK and STOP */
-          //i2c_putreg32(priv, I2C_CTRLB_CMD_ACKSTOP, SAM_I2C_CTRLB_OFFSET);
-        }
-    }
 }
 
-#if 0 /* Not Used */
 /*******************************************************************************
  * Name: i2c_startmessage
  *
@@ -1249,7 +1070,6 @@ static void i2c_startmessage(struct sam_i2c_dev_s *priv, struct i2c_msg_s *msg)
       i2c_startwrite(priv, msg);
     }
 }
-#endif
 
 /*******************************************************************************
  * I2C device operations
@@ -1813,9 +1633,7 @@ static void i2c_hw_initialize(struct sam_i2c_dev_s *priv, uint32_t frequency)
   }
 
   /* Enable SERCOM interrupts at the NVIC */
-#if 0 /*Not used*/
   up_enable_irq(priv->attr->irq);
-#endif
   irqrestore(flags);
 }
 
@@ -1874,6 +1692,7 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
   struct sam_i2c_dev_s *priv;
   uint32_t frequency;
   irqstate_t flags;
+  int ret = 0;
 
   i2cvdbg("Initializing I2C%d\n", bus);
 
@@ -1972,7 +1791,6 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
 
   /* Allocate a watchdog timer */
 
-#if 0 /* Not used */
   priv->timeout = wd_create();
   if (priv->timeout == NULL)
     {
@@ -1988,7 +1806,6 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
       idbg("ERROR: Failed to attach irq %d\n", priv->attr->irq);
       goto errout_with_wdog;
     }
-#endif /* Not used */
 
   /* Initialize the I2C driver structure */
 
@@ -2005,16 +1822,14 @@ struct i2c_dev_s *up_i2cinitialize(int bus)
   irqrestore(flags);
   return &priv->dev;
 
-#if 0 /* Not used */
 errout_with_wdog:
   wd_delete(priv->timeout);
   priv->timeout = NULL;
 
 errout_with_irq:
-#endif /* Not used */
 
-  //irqrestore(flags);
-  //return NULL;
+  irqrestore(flags);
+  return NULL;
 }
 
 /*******************************************************************************
@@ -2033,9 +1848,7 @@ int up_i2cuninitialize(FAR struct i2c_dev_s *dev)
 
   /* Disable I2C interrupts */
 
-#if 0 /* Not used */
   up_disable_irq(priv->attr->irq);
-#endif
 
   /* Reset data structures */
 
@@ -2044,16 +1857,12 @@ int up_i2cuninitialize(FAR struct i2c_dev_s *dev)
 
   /* Free the watchdog timer */
 
-#if 0 /* Not used */
   wd_delete(priv->timeout);
   priv->timeout = NULL;
-#endif
 
   /* Detach Interrupt Handler */
 
-#if 0 /* Not used */
   (void)irq_detach(priv->attr->irq);
-#endif
   return OK;
 }
 
@@ -2079,9 +1888,7 @@ int up_i2creset(FAR struct i2c_dev_s *dev)
 
   /* Disable I2C interrupts */
 
-#if 0 /* Not use */
   up_disable_irq(priv->attr->irq);
-#endif
 
   /* Disable I2C */
 
