@@ -51,7 +51,7 @@
 
 #include "chip.h"
 
-#if defined(CONFIG_ARCH_FAMILY_SAMD20)
+#if defined(CONFIG_ARCH_FAMILY_SAMD20) || defined(CONFIG_ARCH_FAMILY_SAMD21)
 #  include "chip/samd_port.h"
 #elif defined(CONFIG_ARCH_FAMILY_SAML21)
 #  include "chip/saml_port.h"
@@ -170,7 +170,7 @@
  *                3210 9876 5432 1098 7654 3210
  *   ------------ -----------------------------
  *   PORT Input:  .... .... .... .... .... ....
- *   PORT Output: .... ...O .... .... .... ....
+ *   PORT Output: .... .... .... .... .... ....
  *   Peripheral:  .... ...O .... .... .... ....
  */
 #define PORT_OUTREADBACK_SHIFT     (16)       /* Bit 16: Pin output and input buffer enabled */
